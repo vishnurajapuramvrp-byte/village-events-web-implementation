@@ -28,6 +28,7 @@ export type EventReportData = {
   organizationName: string;
   villageName: string;
   eventName: string;
+  year: number;
   startDate: Date;
   endDate: Date | null;
   generatedAt: Date;
@@ -54,7 +55,7 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
       <Page size="A4" style={styles.page}>
         <Text style={styles.title}>{data.eventName}</Text>
         <Text style={styles.muted}>
-          {data.organizationName} · {data.villageName}
+          {data.organizationName} · {data.villageName} · {data.year}
         </Text>
         <View style={styles.row}>
           <Text>Period: {formatDate(data.startDate)}{data.endDate ? ` – ${formatDate(data.endDate)}` : ""}</Text>

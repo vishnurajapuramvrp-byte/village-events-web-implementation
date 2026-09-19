@@ -50,14 +50,15 @@ export default async function EventDetailPage({ params }: { params: { id: string
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">
-            <Link href="/events" className="hover:underline">
-              Events
+            <Link href={`/events?year=${event.year}`} className="hover:underline">
+              Events · {event.year}
             </Link>
           </p>
           <h1 className="text-3xl font-semibold">{event.name}</h1>
           <p className="mt-1 max-w-2xl text-muted-foreground">{event.description}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary">{event.year}</Badge>
           <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
           <Button variant="outline" asChild>
             <a href={`/api/reports/${event.id}/pdf`}>Download PDF</a>

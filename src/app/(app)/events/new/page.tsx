@@ -1,22 +1,25 @@
 import { createEventAction } from "@/app/actions";
 import { requirePermission } from "@/lib/session";
+import { currentEventYear } from "@/lib/event-year";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/submit-button";
+import { YearSelect } from "@/components/year-select";
 import Link from "next/link";
 
 export default async function NewEventPage() {
   await requirePermission("writeEvents");
+  const year = currentEventYear();
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">New event</h1>
         <p className="text-sm text-muted-foreground">
-          Opening balance is the cash already on hand before this event&apos;s donations.
+          Choose the programme year first so later reports and maintenance stay grouped.
         </p>
       </div>
       <Card>
@@ -27,8 +30,15 @@ export default async function NewEventPage() {
         <CardContent>
           <form action={createEventAction} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="year">Year</Label>
+              <YearSelect defaultValue={year} />
+              <p className="text-xs text-muted-foreground">
+                Use the festival or accounting year this fund belongs to, even if dates spill into another calendar year.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" required placeholder="Ugadi 2027 community fund" />
+              <Input id="name" name="name" required placeholder={`Ugadi ${year} community fund`} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>

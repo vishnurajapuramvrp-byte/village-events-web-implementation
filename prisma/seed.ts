@@ -107,6 +107,7 @@ async function main() {
         "Village festival collections used for community meals, temple expenses, and need-based support.",
       startDate,
       endDate: new Date("2026-01-16"),
+      year: 2026,
       openingBalancePaise: 25_000_00,
       status: EventStatus.ACTIVE,
     },

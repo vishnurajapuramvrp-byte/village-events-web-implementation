@@ -14,6 +14,7 @@ import {
   createExpenseRecord,
 } from "@/lib/ledger";
 import { addYears } from "@/lib/interest";
+import { parseEventYear, yearFromDate } from "@/lib/event-year";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -24,13 +25,15 @@ export async function createEventAction(formData: FormData) {
   const name = formString(formData, "name");
   if (!name) throw new Error("Event name is required.");
 
+  const startDate = new Date(formString(formData, "startDate"));
   const event = await prisma.event.create({
     data: {
       villageId: user.villageId!,
       name,
       description: formString(formData, "description") || null,
-      startDate: new Date(formString(formData, "startDate")),
+      startDate,
       endDate: formString(formData, "endDate") ? new Date(formString(formData, "endDate")) : null,
+      year: parseEventYear(formData.get("year") || yearFromDate(startDate)),
       openingBalancePaise: parseRupeeInput(formData.get("openingBalance") || "0"),
       status: EventStatus.ACTIVE,
     },
