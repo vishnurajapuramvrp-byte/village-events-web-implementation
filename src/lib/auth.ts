@@ -6,6 +6,10 @@ import Google from "next-auth/providers/google";
 import { Role } from "@/lib/enums";
 import { prisma } from "@/lib/prisma";
 
+if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
+  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
+}
+
 function adminEmails() {
   return (process.env.ADMIN_EMAILS ?? "")
     .split(",")
@@ -13,24 +17,35 @@ function adminEmails() {
     .filter(Boolean);
 }
 
+export function demoLoginEnabled() {
+  if (process.env.ENABLE_DEMO_LOGIN === "true") return true;
+  if (process.env.ENABLE_DEMO_LOGIN === "false") return false;
+  return process.env.NODE_ENV !== "production";
+}
+
+export function googleLoginEnabled() {
+  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
 async function firstVillageId() {
   const village = await prisma.village.findFirst({ orderBy: { createdAt: "asc" } });
   return village?.id ?? null;
 }
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
-  pages: { signIn: "/" },
-  providers: [
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          }),
-        ]
-      : []),
+const providers: NextAuthOptions["providers"] = [];
+
+if (googleLoginEnabled()) {
+  providers.push(
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
+    }),
+  );
+}
+
+if (demoLoginEnabled()) {
+  providers.push(
     Credentials({
       name: "Demo login",
       credentials: {
@@ -53,7 +68,26 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-  ],
+  );
+}
+
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+  pages: { signIn: "/" },
+  providers,
+  events: {
+    async createUser({ user }) {
+      const email = user.email?.toLowerCase() ?? "";
+      const villageId = await firstVillageId();
+      const role = adminEmails().includes(email) ? Role.ADMIN : Role.VIEWER;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { villageId, role },
+      });
+    },
+  },
   callbacks: {
     async jwt({ token, user, account }) {
       if (user?.id) token.sub = user.id;

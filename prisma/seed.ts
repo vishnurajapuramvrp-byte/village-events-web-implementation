@@ -6,6 +6,14 @@ import { addDays, addYears } from "../src/lib/interest";
 const prisma = new PrismaClient();
 
 async function main() {
+  const onVercel = Boolean(process.env.VERCEL);
+  const production = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+  if ((onVercel || production) && process.env.ALLOW_DEMO_SEED !== "true") {
+    throw new Error(
+      "Demo seed wipes the database. For production run `npm run db:seed:prod`, or set ALLOW_DEMO_SEED=true.",
+    );
+  }
+
   await prisma.reminder.deleteMany();
   await prisma.distributionPayment.deleteMany();
   await prisma.distribution.deleteMany();

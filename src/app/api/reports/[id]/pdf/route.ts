@@ -5,6 +5,9 @@ import { requirePermission } from "@/lib/session";
 import { getEventLedgerTotals } from "@/lib/ledger";
 import { EventReportDocument } from "@/lib/pdf/EventReportDocument";
 
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
     const user = await requirePermission("viewFinance");
