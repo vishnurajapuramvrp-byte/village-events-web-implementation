@@ -14,6 +14,7 @@ import {
   createExpenseRecord,
 } from "@/lib/ledger";
 import { addYears } from "@/lib/interest";
+import { parseEventYear, yearFromDate } from "@/lib/event-year";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -29,8 +30,9 @@ export async function createEventAction(formData: FormData) {
       villageId: user.villageId!,
       name,
       description: formString(formData, "description") || null,
-      startDate: new Date(formString(formData, "startDate")),
+      startDate,
       endDate: formString(formData, "endDate") ? new Date(formString(formData, "endDate")) : null,
+      year: parseEventYear(formData.get("year") || yearFromDate(new Date(formString(formData, "startDate")))),
       openingBalancePaise: parseRupeeInput(formData.get("openingBalance") || "0"),
       status: EventStatus.ACTIVE,
     },
