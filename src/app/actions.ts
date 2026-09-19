@@ -25,6 +25,7 @@ export async function createEventAction(formData: FormData) {
   const name = formString(formData, "name");
   if (!name) throw new Error("Event name is required.");
 
+  const startDate = new Date(formString(formData, "startDate"));
   const event = await prisma.event.create({
     data: {
       villageId: user.villageId!,
@@ -32,7 +33,7 @@ export async function createEventAction(formData: FormData) {
       description: formString(formData, "description") || null,
       startDate,
       endDate: formString(formData, "endDate") ? new Date(formString(formData, "endDate")) : null,
-      year: parseEventYear(formData.get("year") || yearFromDate(new Date(formString(formData, "startDate")))),
+      year: parseEventYear(formData.get("year") || yearFromDate(startDate)),
       openingBalancePaise: parseRupeeInput(formData.get("openingBalance") || "0"),
       status: EventStatus.ACTIVE,
     },

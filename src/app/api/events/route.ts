@@ -5,13 +5,16 @@ import { EventStatus } from "@/lib/enums";
 import { writeAudit } from "@/lib/audit";
 import { parseRupeeInput } from "@/lib/money";
 import { getEventLedgerTotals } from "@/lib/ledger";
+import { parseEventYear } from "@/lib/event-year";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await requirePermission("viewFinance");
+    const yearParam = new URL(request.url).searchParams.get("year");
+    const year = yearParam && yearParam !== "all" ? parseEventYear(yearParam) : undefined;
     const events = await prisma.event.findMany({
-      where: { villageId: user.villageId! },
-      orderBy: { startDate: "desc" },
+      where: { villageId: user.villageId!, ...(year ? { year } : {}) },
+      orderBy: [{ year: "desc" }, { startDate: "desc" }],
     });
     const balances = await Promise.all(events.map((event) => getEventLedgerTotals(event.id)));
     return NextResponse.json(
@@ -33,6 +36,7 @@ export async function POST(request: Request) {
         description: body.description ? String(body.description) : null,
         startDate: new Date(body.startDate),
         endDate: body.endDate ? new Date(body.endDate) : null,
+        year: parseEventYear(body.year ?? new Date(body.startDate).getFullYear()),
         openingBalancePaise: parseRupeeInput(body.openingBalance ?? body.openingBalancePaise ?? "0"),
         status: EventStatus.ACTIVE,
       },

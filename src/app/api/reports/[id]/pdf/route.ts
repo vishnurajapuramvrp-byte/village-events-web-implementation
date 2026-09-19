@@ -29,6 +29,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
           organizationName: event.village.organization.name,
           villageName: event.village.name,
           eventName: event.name,
+          year: event.year,
           startDate: event.startDate,
           endDate: event.endDate,
           generatedAt: new Date(),

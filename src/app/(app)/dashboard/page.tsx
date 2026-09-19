@@ -47,7 +47,7 @@ export default async function DashboardPage() {
 
   const events = await prisma.event.findMany({
     where: { villageId: user.villageId },
-    orderBy: { startDate: "desc" },
+    orderBy: [{ year: "desc" }, { startDate: "desc" }],
   });
 
   const balances = await Promise.all(events.map((event) => getEventLedgerTotals(event.id)));
@@ -137,7 +137,9 @@ export default async function DashboardPage() {
                 >
                   <div>
                     <p className="font-medium">{event.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(event.startDate)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {event.year} · {formatDate(event.startDate)}
+                    </p>
                   </div>
                   <div className="text-right">
                     <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
