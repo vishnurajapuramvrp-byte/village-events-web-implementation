@@ -2,11 +2,14 @@ import { redirect } from "next/navigation";
 import { Landmark } from "lucide-react";
 import { getSessionUser } from "@/lib/session";
 import { SignInForm } from "@/components/sign-in-form";
+import { demoLoginEnabled, googleLoginEnabled } from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function HomePage() {
   const user = await getSessionUser();
   if (user) redirect("/dashboard");
+  const googleEnabled = googleLoginEnabled();
+  const demoEnabled = demoLoginEnabled();
 
   return (
     <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-2">
@@ -32,10 +35,14 @@ export default async function HomePage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
-          <CardDescription>Use a demo account locally, or Google in production.</CardDescription>
+          <CardDescription>
+            {demoEnabled
+              ? "Use a demo account locally, or Google once OAuth is configured."
+              : "Sign in with the Google account listed in ADMIN_EMAILS."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <SignInForm googleEnabled={Boolean(process.env.GOOGLE_CLIENT_ID)} />
+          <SignInForm googleEnabled={googleEnabled} demoLoginEnabled={demoEnabled} />
         </CardContent>
       </Card>
     </div>

@@ -5,7 +5,10 @@ import "./globals.css";
 
 const font = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
+const siteUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://127.0.0.1:43123");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Village Events & Programs",
   description: "Festival funds, donations, expenses, and repayable distributions.",
 };
