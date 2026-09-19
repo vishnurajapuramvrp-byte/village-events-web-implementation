@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
+import { CalendarDays, Coins, HandCoins } from "lucide-react";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -92,19 +93,25 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardDescription>Events</CardDescription>
+            <CardDescription className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" /> Events
+            </CardDescription>
             <CardTitle className="text-3xl">{events.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Cash across events</CardDescription>
+            <CardDescription className="flex items-center gap-2">
+              <Coins className="h-4 w-4" /> Cash across events
+            </CardDescription>
             <CardTitle className="text-3xl">{formatINR(cash)}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Open distributions</CardDescription>
+            <CardDescription className="flex items-center gap-2">
+              <HandCoins className="h-4 w-4" /> Open distributions
+            </CardDescription>
             <CardTitle className="text-3xl">
               {outstanding.filter((row) => distributionSnapshot(row).outstandingToDatePaise > 0).length}
             </CardTitle>

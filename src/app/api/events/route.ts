@@ -1,0 +1,51 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/session";
+import { EventStatus } from "@/lib/enums";
+import { writeAudit } from "@/lib/audit";
+import { parseRupeeInput } from "@/lib/money";
+import { getEventLedgerTotals } from "@/lib/ledger";
+
+export async function GET() {
+  try {
+    const user = await requirePermission("viewFinance");
+    const events = await prisma.event.findMany({
+      where: { villageId: user.villageId! },
+      orderBy: { startDate: "desc" },
+    });
+    const balances = await Promise.all(events.map((event) => getEventLedgerTotals(event.id)));
+    return NextResponse.json(
+      events.map((event, index) => ({ ...event, ledger: balances[index] })),
+    );
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const user = await requirePermission("writeEvents");
+    const body = await request.json();
+    const event = await prisma.event.create({
+      data: {
+        villageId: user.villageId!,
+        name: String(body.name ?? "").trim(),
+        description: body.description ? String(body.description) : null,
+        startDate: new Date(body.startDate),
+        endDate: body.endDate ? new Date(body.endDate) : null,
+        openingBalancePaise: parseRupeeInput(body.openingBalance ?? body.openingBalancePaise ?? "0"),
+        status: EventStatus.ACTIVE,
+      },
+    });
+    await writeAudit({
+      userId: user.id,
+      action: "CREATE",
+      entityType: "Event",
+      entityId: event.id,
+      newValue: event,
+    });
+    return NextResponse.json(event, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+  }
+}

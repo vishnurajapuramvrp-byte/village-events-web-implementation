@@ -2,7 +2,7 @@ import { Role } from "@/lib/enums";
 import { updateUserRoleAction } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/session";
-import { roleLabel } from "@/lib/audit";
+import { roleLabel } from "@/lib/rbac";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SubmitButton } from "@/components/submit-button";
