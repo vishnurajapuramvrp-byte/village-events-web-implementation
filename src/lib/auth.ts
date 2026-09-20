@@ -4,17 +4,11 @@ import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { Role } from "@/lib/enums";
+import { isDesignatedAdmin, isGmailAddress } from "@/lib/gmail";
 import { prisma } from "@/lib/prisma";
 
 if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
   process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
-}
-
-function adminEmails() {
-  return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((item) => item.trim().toLowerCase())
-    .filter(Boolean);
 }
 
 export function demoLoginEnabled() {
@@ -40,6 +34,11 @@ if (googleLoginEnabled()) {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: "select_account",
+        },
+      },
     }),
   );
 }
@@ -81,7 +80,7 @@ export const authOptions: NextAuthOptions = {
     async createUser({ user }) {
       const email = user.email?.toLowerCase() ?? "";
       const villageId = await firstVillageId();
-      const role = adminEmails().includes(email) ? Role.ADMIN : Role.VIEWER;
+      const role = isDesignatedAdmin(email) ? Role.ADMIN : Role.VIEWER;
       await prisma.user.update({
         where: { id: user.id },
         data: { villageId, role },
@@ -89,19 +88,20 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
+    async signIn({ account, profile, user }) {
+      if (account?.provider !== "google") return true;
+      const email = (profile as { email?: string } | undefined)?.email ?? user.email ?? "";
+      return isGmailAddress(email);
+    },
     async jwt({ token, user, account }) {
       if (user?.id) token.sub = user.id;
       if (account?.provider === "google" && token.email) {
         const existing = await prisma.user.findUnique({ where: { email: token.email } });
-        if (existing) {
-          const updates: { role?: string; villageId?: string | null } = {};
-          if (adminEmails().includes(token.email.toLowerCase()) && existing.role !== Role.ADMIN) {
-            updates.role = Role.ADMIN;
-          }
-          if (!existing.villageId) updates.villageId = await firstVillageId();
-          if (Object.keys(updates).length) {
-            await prisma.user.update({ where: { id: existing.id }, data: updates });
-          }
+        if (existing && !existing.villageId) {
+          await prisma.user.update({
+            where: { id: existing.id },
+            data: { villageId: await firstVillageId() },
+          });
         }
       }
 

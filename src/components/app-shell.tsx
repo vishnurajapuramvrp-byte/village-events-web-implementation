@@ -32,6 +32,8 @@ const links = [
 
 export function AppShell({
   user,
+  villageName,
+  tagline,
   children,
 }: {
   user: {
@@ -40,6 +42,8 @@ export function AppShell({
     email?: string | null;
     role: Role | string;
   };
+  villageName: string;
+  tagline: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -56,8 +60,8 @@ export function AppShell({
             <Landmark className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold leading-tight">Village Events</p>
-            <p className="text-xs text-muted-foreground">Festival ledger</p>
+            <p className="text-sm font-semibold leading-tight">{villageName}</p>
+            <p className="text-xs text-muted-foreground">{tagline}</p>
           </div>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible">

@@ -154,7 +154,18 @@ export async function closeEventAction(eventId: string) {
 export async function updateUserRoleAction(userId: string, formData: FormData) {
   const actor = await requirePermission("manageUsers");
   const role = formString(formData, "role") as Role;
+  if (!Object.values(Role).includes(role)) {
+    throw new Error("Choose a valid role.");
+  }
   const old = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  if (old.role === Role.ADMIN && role !== Role.ADMIN) {
+    const otherAdmins = await prisma.user.count({
+      where: { role: Role.ADMIN, id: { not: userId } },
+    });
+    if (otherAdmins === 0) {
+      throw new Error("Keep at least one Admin account.");
+    }
+  }
   const updated = await prisma.user.update({
     where: { id: userId },
     data: { role },

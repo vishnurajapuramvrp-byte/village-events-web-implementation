@@ -10,7 +10,7 @@
     "build": "node scripts/prisma-generate.mjs && node scripts/prisma-migrate-deploy.mjs && next build",
     "start": "next start -H 127.0.0.1 -p 43123",
     "lint": "next lint",
-    "test": "tsx --test src/lib/finance.test.ts src/lib/http-error.test.ts",
+    "test": "tsx --test src/lib/finance.test.ts src/lib/http-error.test.ts src/lib/auth.test.ts",
     "db:push": "node scripts/prisma-db-push.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:prod": "tsx prisma/seed-prod.ts",

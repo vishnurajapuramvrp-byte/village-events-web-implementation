@@ -55,7 +55,7 @@ export function SignInForm({
           variant={demoLoginEnabled ? "outline" : "default"}
           onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         >
-          Continue with Google
+          Continue with Gmail
         </Button>
       ) : null}
 
@@ -84,7 +84,7 @@ export function SignInForm({
 
       {!googleEnabled && !demoLoginEnabled ? (
         <p className="text-sm text-muted-foreground">
-          Authentication is not configured. Set Google OAuth keys, or ENABLE_DEMO_LOGIN=true for a demo.
+          Authentication is not configured. Production needs Google OAuth. Locally set ENABLE_DEMO_LOGIN=true.
         </p>
       ) : null}
 

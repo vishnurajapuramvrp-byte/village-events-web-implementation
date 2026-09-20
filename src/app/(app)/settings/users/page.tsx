@@ -18,8 +18,8 @@ export default async function UsersPage() {
       <div>
         <h1 className="text-3xl font-semibold">Users & roles</h1>
         <p className="text-sm text-muted-foreground">
-          Admin, treasurer, committee member, viewer, and recipient. Google users listed in
-          ADMIN_EMAILS become admins on first sign-in.
+          The Gmail listed in ADMIN_EMAIL becomes Admin on first sign-in. Everyone else starts as
+          Viewer until an Admin assigns Treasurer, Committee, Viewer, or Recipient.
         </p>
       </div>
       <Card>

@@ -43,8 +43,8 @@ If you only have one connection string, set **both** `DATABASE_URL` and `DIRECT_
 ### 2. Google OAuth
 
 1. Google Cloud → APIs & Services → Credentials → OAuth 2.0 Client (Web application).
-2. Authorized redirect URI: `https://YOUR-DOMAIN/api/auth/callback/google` (also add the `*.vercel.app` URL if you use it).
-3. Put the client ID and secret in Vercel env vars.
+2. Authorized redirect URI: `https://vrp-events.vercel.app/api/auth/callback/google` (also add any extra `*.vercel.app` URL).
+3. Put the client ID and secret in Vercel env vars. Set `ADMIN_EMAIL` to the one Gmail that should be Admin. Other Gmail users sign in as Viewer until an Admin assigns a role.
 
 ### 3. Import the GitHub repo
 
@@ -60,11 +60,15 @@ Generate secrets with `openssl rand -base64 32`.
 | `DIRECT_URL` | Yes | Direct Postgres URL (migrations) |
 | `NEXTAUTH_URL` | Yes | Canonical site URL, e.g. `https://your-app.vercel.app` |
 | `NEXTAUTH_SECRET` | Yes | Random 32+ byte secret |
-| `GOOGLE_CLIENT_ID` | Yes | Google OAuth client |
-| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth secret |
-| `ADMIN_EMAILS` | Yes | Your Gmail, comma-separated; first sign-in becomes Admin |
+| `GOOGLE_CLIENT_ID` | Yes in production | Google OAuth client (Gmail sign-in) |
+| `GOOGLE_CLIENT_SECRET` | Yes in production | Google OAuth secret |
+| `ADMIN_EMAIL` | Yes in production | One Gmail that becomes Admin on first sign-in |
+| `ADMIN_EMAILS` | No | Extra Gmail admins, comma-separated |
+| `VILLAGE_NAME` | No | Login badge and sidebar name (or edit `src/lib/site-config.ts`) |
+| `VILLAGE_HEADLINE` | No | Bold headline on the login page |
+| `VILLAGE_DESCRIPTION` | No | Village description under the headline |
 | `CRON_SECRET` | Yes | Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` |
-| `ENABLE_DEMO_LOGIN` | No | Default off in production |
+| `ENABLE_DEMO_LOGIN` | No | Default off in production; Gmail-only when unset |
 
 Optional: `ORG_NAME`, `VILLAGE_NAME`, `VILLAGE_DISTRICT`, `VILLAGE_STATE` for the production seed.
 
