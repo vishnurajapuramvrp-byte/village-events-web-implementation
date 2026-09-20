@@ -122,7 +122,10 @@ export default async function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Events</CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Events</CardTitle>
+              <Button variant="outline" size="sm" asChild><Link href="/events">View all</Link></Button>
+            </div>
             <CardDescription>Balances are computed from donations, expenses, and distributions.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -130,22 +133,25 @@ export default async function DashboardPage() {
               <p className="text-sm text-muted-foreground">No events yet.</p>
             ) : (
               events.map((event, index) => (
-                <Link
+                <div
                   key={event.id}
-                  href={`/events/${event.id}`}
                   className="flex items-center justify-between rounded-lg border border-border px-3 py-3 hover:bg-muted/40"
                 >
                   <div>
-                    <p className="font-medium">{event.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <Link href={`/events/${event.id}`} className="font-medium hover:underline">{event.name}</Link>
+                    <Link href={`/events/${event.id}`} className="block text-xs text-muted-foreground hover:underline">
                       {event.year} · {formatDate(event.startDate)}
-                    </p>
+                    </Link>
                   </div>
                   <div className="text-right">
                     <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
                     <p className="mt-1 text-sm">{formatINR(balances[index].distributableBalancePaise)}</p>
+                    <div className="mt-2 flex gap-2 text-xs">
+                      <Link href={`/reminders?eventId=${event.id}`} className="text-primary hover:underline">Reminders</Link>
+                      <Link href={`/reports?eventId=${event.id}`} className="text-primary hover:underline">Report</Link>
+                    </div>
                   </div>
-                </Link>
+                </div>
               ))
             )}
           </CardContent>
@@ -153,7 +159,10 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Upcoming dues</CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Upcoming dues</CardTitle>
+              <Button variant="outline" size="sm" asChild><Link href="/reminders">All reminders</Link></Button>
+            </div>
             <CardDescription>Principal plus accrued interest, minus repayments.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

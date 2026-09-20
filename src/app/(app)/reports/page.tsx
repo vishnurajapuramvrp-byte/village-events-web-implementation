@@ -7,14 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 
-export default async function ReportsPage() {
+export default async function ReportsPage({ searchParams }: { searchParams: { eventId?: string } }) {
   const user = await requirePermission("viewFinance");
   const events = await prisma.event.findMany({
     where: { villageId: user.villageId! },
     orderBy: [{ year: "desc" }, { startDate: "desc" }],
   });
-  const balances = await Promise.all(events.map((event) => getEventLedgerTotals(event.id)));
-  const years = Array.from(new Set(events.map((event) => event.year)));
+  const selectedEventId = searchParams.eventId && events.some((event) => event.id === searchParams.eventId)
+    ? searchParams.eventId
+    : "all";
+  const visibleEvents = selectedEventId === "all" ? events : events.filter((event) => event.id === selectedEventId);
+  const balances = await Promise.all(visibleEvents.map((event) => getEventLedgerTotals(event.id)));
+  const years = Array.from(new Set(visibleEvents.map((event) => event.year)));
 
   return (
     <div className="space-y-6">
@@ -25,7 +29,15 @@ export default async function ReportsPage() {
           section. Please verify against original receipts.
         </p>
       </div>
-      {events.length === 0 ? (
+      <form method="get" className="flex items-center gap-3">
+        <label htmlFor="report-event" className="text-sm font-medium">Event</label>
+        <select id="report-event" name="eventId" defaultValue={selectedEventId} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+          <option value="all">All events</option>
+          {events.map((event) => <option key={event.id} value={event.id}>{event.name}</option>)}
+        </select>
+        <button type="submit" className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted">Filter</button>
+      </form>
+      {visibleEvents.length === 0 ? (
         <EmptyState title="Nothing to report" description="Create an event first, then generate a PDF from its records." />
       ) : (
         <div className="space-y-8">
@@ -33,7 +45,7 @@ export default async function ReportsPage() {
             <section key={year} className="space-y-4">
               <h2 className="text-lg font-semibold">{year}</h2>
               <div className="grid gap-4">
-                {events
+                {visibleEvents
                   .map((event, index) => ({ event, index }))
                   .filter(({ event }) => event.year === year)
                   .map(({ event, index }) => (

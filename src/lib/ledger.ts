@@ -114,6 +114,41 @@ export async function createDonationRecord(input: {
   return donation;
 }
 
+export async function updateDonationRecord(input: {
+  id: string;
+  donorName: string;
+  amountPaise: number;
+  receivedOn: Date;
+  method: PaymentMethod | string;
+  transactionRef?: string | null;
+  notes?: string;
+  actorUserId?: string;
+}) {
+  if (!input.donorName) throw new Error("Donor name is required.");
+  if (input.amountPaise <= 0) throw new Error("Donation amount must be greater than zero.");
+  const existing = await prisma.donation.findUniqueOrThrow({ where: { id: input.id }, include: { event: true } });
+  if (existing.event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
+  if (input.transactionRef) {
+    const duplicate = await prisma.donation.findFirst({
+      where: { transactionRef: input.transactionRef, id: { not: input.id } },
+    });
+    if (duplicate) throw new Error("This transaction reference has already been recorded.");
+  }
+  const donation = await prisma.donation.update({
+    where: { id: input.id },
+    data: {
+      donorName: input.donorName,
+      amountPaise: input.amountPaise,
+      receivedOn: input.receivedOn,
+      method: input.method,
+      transactionRef: input.transactionRef || null,
+      notes: input.notes,
+    },
+  });
+  await writeAudit({ userId: input.actorUserId, action: "UPDATE", entityType: "Donation", entityId: donation.id, newValue: donation });
+  return donation;
+}
+
 export async function createExpenseRecord(input: {
   eventId: string;
   category: string;
@@ -153,6 +188,35 @@ export async function createExpenseRecord(input: {
   return expense;
 }
 
+export async function updateExpenseRecord(input: {
+  id: string;
+  category: string;
+  description: string;
+  amountPaise: number;
+  incurredOn: Date;
+  paidTo?: string;
+  receiptRef?: string;
+  actorUserId?: string;
+}) {
+  if (!input.category || !input.description) throw new Error("Category and description are required.");
+  if (input.amountPaise <= 0) throw new Error("Expense amount must be greater than zero.");
+  const existing = await prisma.expense.findUniqueOrThrow({ where: { id: input.id }, include: { event: true } });
+  if (existing.event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
+  const expense = await prisma.expense.update({
+    where: { id: input.id },
+    data: {
+      category: input.category,
+      description: input.description,
+      amountPaise: input.amountPaise,
+      incurredOn: input.incurredOn,
+      paidTo: input.paidTo,
+      receiptRef: input.receiptRef,
+    },
+  });
+  await writeAudit({ userId: input.actorUserId, action: "UPDATE", entityType: "Expense", entityId: expense.id, newValue: expense });
+  return expense;
+}
+
 function reminderSchedule(dueDate: Date) {
   return [
     { kind: ReminderKind.DAYS_30, scheduledFor: addDays(dueDate, -30) },
@@ -164,7 +228,13 @@ function reminderSchedule(dueDate: Date) {
 
 export async function createDistributionRecord(input: {
   eventId: string;
-  personId: string;
+  personId?: string;
+  recipientName: string;
+  recipientPhone?: string;
+  guarantorOneName: string;
+  guarantorOnePhone: string;
+  guarantorTwoName: string;
+  guarantorTwoPhone: string;
   principalPaise: number;
   interestMethod: InterestMethod | string;
   interestRateBps: number;
@@ -175,7 +245,13 @@ export async function createDistributionRecord(input: {
   actorUserId?: string;
 }) {
   if (input.principalPaise <= 0) throw new Error("Principal must be greater than zero.");
-  if (!input.personId) throw new Error("Select a recipient.");
+  if (!input.recipientName.trim()) throw new Error("Recipient name is required.");
+  if (!input.guarantorOneName.trim() || !input.guarantorOnePhone.trim()) {
+    throw new Error("First guarantor name and phone are required.");
+  }
+  if (!input.guarantorTwoName.trim() || !input.guarantorTwoPhone.trim()) {
+    throw new Error("Second guarantor name and phone are required.");
+  }
 
   const event = await prisma.event.findUniqueOrThrow({ where: { id: input.eventId } });
   if (event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
@@ -186,11 +262,24 @@ export async function createDistributionRecord(input: {
   }
 
   const dueDate = input.dueDate ?? addYears(input.startDate, 1);
+  const person = input.personId
+    ? await prisma.person.findUniqueOrThrow({ where: { id: input.personId } })
+    : await prisma.person.create({
+        data: {
+          villageId: event.villageId,
+          name: input.recipientName.trim(),
+          phone: input.recipientPhone?.trim() || null,
+        },
+      });
 
   const distribution = await prisma.distribution.create({
     data: {
       eventId: input.eventId,
-      personId: input.personId,
+      personId: person.id,
+      guarantorOneName: input.guarantorOneName.trim(),
+      guarantorOnePhone: input.guarantorOnePhone.trim(),
+      guarantorTwoName: input.guarantorTwoName.trim(),
+      guarantorTwoPhone: input.guarantorTwoPhone.trim(),
       principalPaise: input.principalPaise,
       interestMethod: input.interestMethod,
       interestRateBps: input.interestRateBps,
@@ -210,6 +299,67 @@ export async function createDistributionRecord(input: {
     newValue: distribution,
   });
 
+  return distribution;
+}
+
+export async function updateDistributionRecord(input: {
+  id: string;
+  recipientName: string;
+  recipientPhone?: string;
+  guarantorOneName: string;
+  guarantorOnePhone: string;
+  guarantorTwoName: string;
+  guarantorTwoPhone: string;
+  principalPaise: number;
+  interestMethod: InterestMethod | string;
+  interestRateBps: number;
+  fixedInterestPaise?: number;
+  startDate: Date;
+  dueDate: Date;
+  notes?: string;
+  actorUserId?: string;
+}) {
+  if (input.principalPaise <= 0) throw new Error("Principal must be greater than zero.");
+  if (!input.recipientName.trim()) throw new Error("Recipient name is required.");
+  if (!input.guarantorOneName.trim() || !input.guarantorOnePhone.trim()) throw new Error("First guarantor name and phone are required.");
+  if (!input.guarantorTwoName.trim() || !input.guarantorTwoPhone.trim()) throw new Error("Second guarantor name and phone are required.");
+  const existing = await prisma.distribution.findUniqueOrThrow({ where: { id: input.id }, include: { event: true, person: true } });
+  if (existing.event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
+  const totals = await getEventLedgerTotals(existing.eventId);
+  if (input.principalPaise > totals.distributableBalancePaise + existing.principalPaise) {
+    throw new Error("Distribution cannot exceed the current distributable balance.");
+  }
+  const distribution = await prisma.$transaction(async (transaction) => {
+    await transaction.person.update({
+      where: { id: existing.personId },
+      data: { name: input.recipientName.trim(), phone: input.recipientPhone?.trim() || null },
+    });
+    if (input.dueDate.getTime() !== existing.dueDate.getTime()) {
+      await transaction.reminder.deleteMany({ where: { distributionId: input.id } });
+    }
+    const updated = await transaction.distribution.update({
+      where: { id: input.id },
+      data: {
+        principalPaise: input.principalPaise,
+        interestMethod: input.interestMethod,
+        interestRateBps: input.interestRateBps,
+        fixedInterestPaise: input.fixedInterestPaise ?? 0,
+        startDate: input.startDate,
+        dueDate: input.dueDate,
+        notes: input.notes,
+        guarantorOneName: input.guarantorOneName.trim(),
+        guarantorOnePhone: input.guarantorOnePhone.trim(),
+        guarantorTwoName: input.guarantorTwoName.trim(),
+        guarantorTwoPhone: input.guarantorTwoPhone.trim(),
+        reminders:
+          input.dueDate.getTime() !== existing.dueDate.getTime()
+            ? { create: reminderSchedule(input.dueDate) }
+            : undefined,
+      },
+    });
+    return updated;
+  });
+  await writeAudit({ userId: input.actorUserId, action: "UPDATE", entityType: "Distribution", entityId: distribution.id, newValue: distribution });
   return distribution;
 }
 

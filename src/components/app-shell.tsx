@@ -6,7 +6,6 @@ import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   CalendarDays,
-  Users,
   Bell,
   FileText,
   ScrollText,
@@ -23,7 +22,6 @@ import { Button } from "@/components/ui/button";
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "viewFinance" as const },
   { href: "/events", label: "Events", icon: CalendarDays, permission: "viewFinance" as const },
-  { href: "/people", label: "People", icon: Users, permission: "viewFinance" as const },
   { href: "/reminders", label: "Reminders", icon: Bell, permission: "viewFinance" as const },
   { href: "/reports", label: "Reports", icon: FileText, permission: "viewFinance" as const },
   { href: "/audit", label: "Audit", icon: ScrollText, permission: "viewAudit" as const },

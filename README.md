@@ -6,7 +6,7 @@ This is a working Phase 1 app: Google or demo login, roles, events, donations, e
 
 ## Run locally
 
-Copy `.env.example` to `.env`. Local demo uses SQLite (`file:./dev.db`) so you can try the full ledger without Postgres or Google OAuth.
+Copy `.env.example` to `.env`. Local development uses a fresh SQLite database (`file:./dev.db`) with Google login enabled and demo login disabled.
 
 ```bash
 npm install
@@ -15,15 +15,10 @@ npm run db:seed
 npm run dev
 ```
 
-Open [http://127.0.0.1:43123](http://127.0.0.1:43123). Demo password for every seeded account: `demo1234`
+Open [http://localhost:3000](http://localhost:3000). The default seed creates only the Vishnu Raja Puram organization and village; add real events after signing in with Google.
 
-| Email | Role |
-|---|---|
-| admin@village.local | Admin |
-| treasurer@village.local | Treasurer |
-| committee@village.local | Committee member |
-| viewer@village.local | Viewer |
-| recipient@village.local | Recipient (Lakshmi Devi's distribution) |
+For optional demo-only testing, set `ENABLE_DEMO_LOGIN="true"` and run `npm run db:seed:demo`. This resets the local database with demo accounts and sample ledger data.
+
 
 ## Production on Vercel
 
@@ -43,7 +38,9 @@ If you only have one connection string, set **both** `DATABASE_URL` and `DIRECT_
 ### 2. Google OAuth
 
 1. Google Cloud → APIs & Services → Credentials → OAuth 2.0 Client (Web application).
-2. Authorized redirect URI: `https://vrp-events.vercel.app/api/auth/callback/google` (also add any extra `*.vercel.app` URL).
+2. Add these exact Authorized redirect URIs:
+	- Local: `http://localhost:3000/api/auth/callback/google`
+	- Production: `https://vrp-events.vercel.app/api/auth/callback/google` (also add any extra `*.vercel.app` URL).
 3. Put the client ID and secret in Vercel env vars. Set `ADMIN_EMAIL` to the one Gmail that should be Admin. Other Gmail users sign in as Viewer until an Admin assigns a role.
 
 ### 3. Import the GitHub repo
@@ -58,7 +55,7 @@ Generate secrets with `openssl rand -base64 32`.
 |---|---|---|
 | `DATABASE_URL` | Yes | Pooled Postgres URL |
 | `DIRECT_URL` | Yes | Direct Postgres URL (migrations) |
-| `NEXTAUTH_URL` | Yes | Canonical site URL, e.g. `https://your-app.vercel.app` |
+| `NEXTAUTH_URL` | No | Automatically uses `http://localhost:3000` locally or the Vercel deployment URL |
 | `NEXTAUTH_SECRET` | Yes | Random 32+ byte secret |
 | `GOOGLE_CLIENT_ID` | Yes in production | Google OAuth client (Gmail sign-in) |
 | `GOOGLE_CLIENT_SECRET` | Yes in production | Google OAuth secret |

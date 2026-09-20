@@ -12,6 +12,9 @@ import {
   createDonationRecord,
   createDistributionRecord,
   createExpenseRecord,
+  updateDonationRecord,
+  updateDistributionRecord,
+  updateExpenseRecord,
 } from "@/lib/ledger";
 import { addYears } from "@/lib/interest";
 import { parseEventYear, yearFromDate } from "@/lib/event-year";
@@ -81,13 +84,48 @@ export async function addExpenseAction(eventId: string, formData: FormData) {
   revalidatePath(`/events/${eventId}`);
 }
 
+export async function editDonationAction(eventId: string, donationId: string, formData: FormData) {
+  const user = await requirePermission("writeFinance");
+  await updateDonationRecord({
+    id: donationId,
+    donorName: formString(formData, "donorName"),
+    amountPaise: parseRupeeInput(formData.get("amount")),
+    receivedOn: new Date(formString(formData, "receivedOn")),
+    method: (formString(formData, "method") || "CASH") as PaymentMethod,
+    transactionRef: formString(formData, "transactionRef") || null,
+    notes: formString(formData, "notes") || undefined,
+    actorUserId: user.id,
+  });
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function editExpenseAction(eventId: string, expenseId: string, formData: FormData) {
+  const user = await requirePermission("writeFinance");
+  await updateExpenseRecord({
+    id: expenseId,
+    category: formString(formData, "category"),
+    description: formString(formData, "description"),
+    amountPaise: parseRupeeInput(formData.get("amount")),
+    incurredOn: new Date(formString(formData, "incurredOn")),
+    paidTo: formString(formData, "paidTo") || undefined,
+    receiptRef: formString(formData, "receiptRef") || undefined,
+    actorUserId: user.id,
+  });
+  revalidatePath(`/events/${eventId}`);
+}
+
 export async function addDistributionAction(eventId: string, formData: FormData) {
   const user = await requirePermission("writeFinance");
   const startDate = new Date(formString(formData, "startDate"));
   const dueRaw = formString(formData, "dueDate");
   await createDistributionRecord({
     eventId,
-    personId: formString(formData, "personId"),
+    recipientName: formString(formData, "recipientName"),
+    recipientPhone: formString(formData, "recipientPhone"),
+    guarantorOneName: formString(formData, "guarantorOneName"),
+    guarantorOnePhone: formString(formData, "guarantorOnePhone"),
+    guarantorTwoName: formString(formData, "guarantorTwoName"),
+    guarantorTwoPhone: formString(formData, "guarantorTwoPhone"),
     principalPaise: parseRupeeInput(formData.get("amount")),
     interestMethod: (formString(formData, "interestMethod") ||
       "ANNUAL_SIMPLE") as InterestMethod,
@@ -97,6 +135,28 @@ export async function addDistributionAction(eventId: string, formData: FormData)
       : 0,
     startDate,
     dueDate: dueRaw ? new Date(dueRaw) : addYears(startDate, 1),
+    notes: formString(formData, "notes") || undefined,
+    actorUserId: user.id,
+  });
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function editDistributionAction(eventId: string, distributionId: string, formData: FormData) {
+  const user = await requirePermission("writeFinance");
+  await updateDistributionRecord({
+    id: distributionId,
+    recipientName: formString(formData, "recipientName"),
+    recipientPhone: formString(formData, "recipientPhone"),
+    guarantorOneName: formString(formData, "guarantorOneName"),
+    guarantorOnePhone: formString(formData, "guarantorOnePhone"),
+    guarantorTwoName: formString(formData, "guarantorTwoName"),
+    guarantorTwoPhone: formString(formData, "guarantorTwoPhone"),
+    principalPaise: parseRupeeInput(formData.get("amount")),
+    interestMethod: (formString(formData, "interestMethod") || "ANNUAL_SIMPLE") as InterestMethod,
+    interestRateBps: Math.round(Number(formString(formData, "interestRate") || "0") * 100),
+    fixedInterestPaise: formString(formData, "fixedInterest") ? parseRupeeInput(formData.get("fixedInterest")) : 0,
+    startDate: new Date(formString(formData, "startDate")),
+    dueDate: new Date(formString(formData, "dueDate")),
     notes: formString(formData, "notes") || undefined,
     actorUserId: user.id,
   });

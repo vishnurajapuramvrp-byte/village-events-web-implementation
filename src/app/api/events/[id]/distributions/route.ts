@@ -12,7 +12,13 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const startDate = new Date(body.startDate);
     const distribution = await createDistributionRecord({
       eventId: params.id,
-      personId: String(body.personId ?? ""),
+      personId: body.personId ? String(body.personId) : undefined,
+      recipientName: String(body.recipientName ?? ""),
+      recipientPhone: body.recipientPhone ? String(body.recipientPhone) : undefined,
+      guarantorOneName: String(body.guarantorOneName ?? ""),
+      guarantorOnePhone: String(body.guarantorOnePhone ?? ""),
+      guarantorTwoName: String(body.guarantorTwoName ?? ""),
+      guarantorTwoPhone: String(body.guarantorTwoPhone ?? ""),
       principalPaise: parseRupeeInput(body.amount ?? body.principalPaise),
       interestMethod: (body.interestMethod as InterestMethod) || InterestMethod.ANNUAL_SIMPLE,
       interestRateBps:

@@ -162,6 +162,10 @@ model Distribution {
   event              Event                  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   personId           String
   person             Person                 @relation(fields: [personId], references: [id], onDelete: Restrict)
+  guarantorOneName   String?
+  guarantorOnePhone  String?
+  guarantorTwoName   String?
+  guarantorTwoPhone  String?
   principalPaise     Int
   interestMethod     String                 @default("ANNUAL_SIMPLE")
   interestRateBps    Int                    @default(0)

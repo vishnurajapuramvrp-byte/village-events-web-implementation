@@ -7,14 +7,14 @@ import { Role } from "@/lib/enums";
 import { isDesignatedAdmin, isGmailAddress } from "@/lib/gmail";
 import { prisma } from "@/lib/prisma";
 
-if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
-  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
 }
 
 export function demoLoginEnabled() {
-  if (process.env.ENABLE_DEMO_LOGIN === "true") return true;
-  if (process.env.ENABLE_DEMO_LOGIN === "false") return false;
-  return process.env.NODE_ENV !== "production";
+  return process.env.ENABLE_DEMO_LOGIN === "true";
 }
 
 export function googleLoginEnabled() {
@@ -24,6 +24,10 @@ export function googleLoginEnabled() {
 async function firstVillageId() {
   const village = await prisma.village.findFirst({ orderBy: { createdAt: "asc" } });
   return village?.id ?? null;
+}
+
+function roleForEmail(email: string) {
+  return isDesignatedAdmin(email) ? Role.ADMIN : Role.VIEWER;
 }
 
 const providers: NextAuthOptions["providers"] = [];
@@ -72,21 +76,18 @@ if (demoLoginEnabled()) {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  trustHost: true,
   useSecureCookies: process.env.NODE_ENV === "production",
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true,
   pages: { signIn: "/" },
   providers,
   events: {
     async createUser({ user }) {
       const email = user.email?.toLowerCase() ?? "";
       const villageId = await firstVillageId();
-      const role = isDesignatedAdmin(email) ? Role.ADMIN : Role.VIEWER;
       await prisma.user.update({
         where: { id: user.id },
-        data: { villageId, role },
+        data: { villageId, role: roleForEmail(email) },
       });
     },
   },

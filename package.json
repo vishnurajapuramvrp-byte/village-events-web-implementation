@@ -12,12 +12,13 @@
     "lint": "next lint",
     "test": "tsx --test src/lib/finance.test.ts src/lib/http-error.test.ts src/lib/auth.test.ts",
     "db:push": "node scripts/prisma-db-push.mjs",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "tsx prisma/seed-prod.ts",
+    "db:seed:demo": "tsx prisma/seed.ts",
     "db:seed:prod": "tsx prisma/seed-prod.ts",
     "postinstall": "node scripts/prisma-generate.mjs"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed-prod.ts"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

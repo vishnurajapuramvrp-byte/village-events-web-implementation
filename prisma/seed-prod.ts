@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const orgName = process.env.ORG_NAME?.trim() || "Village Welfare Trust";
-  const villageName = process.env.VILLAGE_NAME?.trim() || "Srirampuram";
+  const villageName = process.env.VILLAGE_NAME?.trim() || "Vishnu Raja Puram";
 
   let organization = await prisma.organization.findFirst();
   if (!organization) {

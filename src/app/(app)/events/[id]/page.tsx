@@ -6,6 +6,9 @@ import {
   addExpenseAction,
   addPaymentAction,
   closeEventAction,
+  editDonationAction,
+  editDistributionAction,
+  editExpenseAction,
 } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/session";
@@ -23,6 +26,10 @@ import { SubmitButton } from "@/components/submit-button";
 import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/utils";
 
+function dateValue(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
 export default async function EventDetailPage({ params }: { params: { id: string } }) {
   const user = await requirePermission("viewFinance");
   const event = await prisma.event.findFirst({
@@ -38,10 +45,6 @@ export default async function EventDetailPage({ params }: { params: { id: string
   });
   if (!event) notFound();
 
-  const people = await prisma.person.findMany({
-    where: { villageId: user.villageId! },
-    orderBy: { name: "asc" },
-  });
   const balance = await getEventLedgerTotals(event.id);
   const canWrite = can(user.role, "writeFinance") && event.status !== "CLOSED";
 
@@ -133,6 +136,23 @@ export default async function EventDetailPage({ params }: { params: { id: string
                       </TableCell>
                       <TableCell>{formatDate(row.receivedOn)}</TableCell>
                       <TableCell className="text-right">{formatINR(row.amountPaise)}</TableCell>
+                      <TableCell>
+                        {canWrite ? (
+                          <details>
+                            <summary className="cursor-pointer text-sm text-primary">Edit</summary>
+                            <form action={editDonationAction.bind(null, event.id, row.id)} className="mt-3 grid gap-2 sm:grid-cols-2">
+                              <Input name="donorName" defaultValue={row.donorName} required />
+                              <Input name="amount" type="number" step="0.01" min="0.01" defaultValue={(row.amountPaise / 100).toFixed(2)} required />
+                              <Input name="receivedOn" type="date" defaultValue={dateValue(row.receivedOn)} required />
+                              <select name="method" defaultValue={row.method} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                                <option>CASH</option><option>UPI</option><option>BANK</option><option>OTHER</option>
+                              </select>
+                              <Input name="transactionRef" defaultValue={row.transactionRef ?? ""} placeholder="Transaction ref" />
+                              <SubmitButton>Save donation</SubmitButton>
+                            </form>
+                          </details>
+                        ) : null}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -199,6 +219,22 @@ export default async function EventDetailPage({ params }: { params: { id: string
                       </TableCell>
                       <TableCell>{formatDate(row.incurredOn)}</TableCell>
                       <TableCell className="text-right">{formatINR(row.amountPaise)}</TableCell>
+                      <TableCell>
+                        {canWrite ? (
+                          <details>
+                            <summary className="cursor-pointer text-sm text-primary">Edit</summary>
+                            <form action={editExpenseAction.bind(null, event.id, row.id)} className="mt-3 grid gap-2 sm:grid-cols-2">
+                              <Input name="category" defaultValue={row.category} required />
+                              <Input name="description" defaultValue={row.description} required />
+                              <Input name="amount" type="number" step="0.01" min="0.01" defaultValue={(row.amountPaise / 100).toFixed(2)} required />
+                              <Input name="incurredOn" type="date" defaultValue={dateValue(row.incurredOn)} required />
+                              <Input name="paidTo" defaultValue={row.paidTo ?? ""} placeholder="Paid to" />
+                              <Input name="receiptRef" defaultValue={row.receiptRef ?? ""} placeholder="Receipt ref" />
+                              <SubmitButton>Save expense</SubmitButton>
+                            </form>
+                          </details>
+                        ) : null}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -258,6 +294,32 @@ export default async function EventDetailPage({ params }: { params: { id: string
                         {formatINR(row.principalPaise)} principal · {row.interestRateBps / 100}% annual
                         simple · due {formatDate(row.dueDate)}
                       </p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Recipient: {row.person.phone || "No phone"} · Guarantor 1: {row.guarantorOneName} ({row.guarantorOnePhone}) · Guarantor 2: {row.guarantorTwoName} ({row.guarantorTwoPhone})
+                      </p>
+                      {canWrite ? (
+                        <details className="mt-3">
+                          <summary className="cursor-pointer text-sm text-primary">Edit distribution</summary>
+                          <form action={editDistributionAction.bind(null, event.id, row.id)} className="mt-3 grid gap-3 sm:grid-cols-2">
+                            <Input name="recipientName" defaultValue={row.person.name} placeholder="Recipient name" required />
+                            <Input name="recipientPhone" defaultValue={row.person.phone ?? ""} placeholder="Recipient phone" />
+                            <Input name="guarantorOneName" defaultValue={row.guarantorOneName ?? ""} placeholder="Guarantor 1 name" required />
+                            <Input name="guarantorOnePhone" defaultValue={row.guarantorOnePhone ?? ""} placeholder="Guarantor 1 phone" required />
+                            <Input name="guarantorTwoName" defaultValue={row.guarantorTwoName ?? ""} placeholder="Guarantor 2 name" required />
+                            <Input name="guarantorTwoPhone" defaultValue={row.guarantorTwoPhone ?? ""} placeholder="Guarantor 2 phone" required />
+                            <Input name="amount" type="number" step="0.01" min="0.01" defaultValue={(row.principalPaise / 100).toFixed(2)} required />
+                            <Input name="interestRate" type="number" step="0.01" min="0" defaultValue={(row.interestRateBps / 100).toFixed(2)} required />
+                            <select name="interestMethod" defaultValue={row.interestMethod} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                              <option value="ANNUAL_SIMPLE">Annual simple</option><option value="MONTHLY_SIMPLE">Monthly simple</option><option value="FIXED_AMOUNT">Fixed amount</option><option value="CUSTOM">Custom</option>
+                            </select>
+                            <Input name="fixedInterest" type="number" step="0.01" min="0" defaultValue={(row.fixedInterestPaise / 100).toFixed(2)} placeholder="Fixed interest" />
+                            <Input name="startDate" type="date" defaultValue={dateValue(row.startDate)} required />
+                            <Input name="dueDate" type="date" defaultValue={dateValue(row.dueDate)} required />
+                            <Textarea name="notes" defaultValue={row.notes ?? ""} placeholder="Notes" className="sm:col-span-2" />
+                            <SubmitButton>Save distribution</SubmitButton>
+                          </form>
+                        </details>
+                      ) : null}
                     </div>
                     <div className="text-sm">
                       {snap.overdue ? <Badge variant="danger">Overdue</Badge> : null}
@@ -286,21 +348,29 @@ export default async function EventDetailPage({ params }: { params: { id: string
 
           {canWrite ? (
             <form action={addDistributionAction.bind(null, event.id)} className="grid gap-3 rounded-lg bg-muted/40 p-4 sm:grid-cols-2">
-              <div className="space-y-1 sm:col-span-2">
-                <Label htmlFor="personId">Recipient</Label>
-                <select
-                  id="personId"
-                  name="personId"
-                  required
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">Select a person</option>
-                  {people.map((person) => (
-                    <option key={person.id} value={person.id}>
-                      {person.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-1">
+                <Label htmlFor="recipientName">Recipient name</Label>
+                <Input id="recipientName" name="recipientName" required />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="recipientPhone">Recipient phone</Label>
+                <Input id="recipientPhone" name="recipientPhone" type="tel" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="guarantorOneName">Guarantor 1 name</Label>
+                <Input id="guarantorOneName" name="guarantorOneName" required />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="guarantorOnePhone">Guarantor 1 phone</Label>
+                <Input id="guarantorOnePhone" name="guarantorOnePhone" type="tel" required />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="guarantorTwoName">Guarantor 2 name</Label>
+                <Input id="guarantorTwoName" name="guarantorTwoName" required />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="guarantorTwoPhone">Guarantor 2 phone</Label>
+                <Input id="guarantorTwoPhone" name="guarantorTwoPhone" type="tel" required />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="dist-amount">Principal (₹)</Label>

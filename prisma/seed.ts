@@ -35,8 +35,8 @@ async function main() {
 
   const village = await prisma.village.create({
     data: {
-      name: "Srirampuram",
-      district: "Guntur",
+      name: "Vishnu Raja Puram",
+      district: "Nellore",
       state: "Andhra Pradesh",
       organizationId: org.id,
     },
@@ -224,7 +224,7 @@ async function main() {
     },
   });
 
-  console.log("Seeded Srirampuram village with Sankranti 2026 event.");
+  console.log("Seeded Vishnu Raja Puram village with Sankranti 2026 event.");
   console.log("Demo password for all accounts: demo1234");
 }
 
