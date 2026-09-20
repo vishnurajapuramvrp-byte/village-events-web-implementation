@@ -48,7 +48,7 @@ If you only have one connection string, set **both** `DATABASE_URL` and `DIRECT_
 
 ### 3. Import the GitHub repo
 
-Vercel → Add New → Project → import this repository. Framework preset: Next.js. Build command stays `npm run build`.
+Vercel → Add New → Project → import this repository. Framework preset: Next.js. Node.js **20.x** (from `package.json` / `.nvmrc`). Build command stays `npm run build`.
 
 ### 4. Environment variables (Production)
 

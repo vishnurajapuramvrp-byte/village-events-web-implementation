@@ -1,6 +1,7 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
 import { getEventLedgerTotals } from "@/lib/ledger";
 import { EventReportDocument } from "@/lib/pdf/EventReportDocument";
@@ -54,6 +55,6 @@ export async function GET(_request: Request, { params }: { params: { id: string 
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    return jsonError(error);
   }
 }

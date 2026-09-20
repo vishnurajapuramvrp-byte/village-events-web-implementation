@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
 import { createDonationRecord } from "@/lib/ledger";
 import { parseRupeeInput } from "@/lib/money";
@@ -19,6 +20,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
     });
     return NextResponse.json(donation, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    return jsonError(error);
   }
 }

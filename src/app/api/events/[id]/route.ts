@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
 import { getEventLedgerTotals } from "@/lib/ledger";
 
@@ -18,6 +19,6 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     const ledger = await getEventLedgerTotals(event.id);
     return NextResponse.json({ ...event, ledger });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    return jsonError(error);
   }
 }

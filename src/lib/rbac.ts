@@ -1,4 +1,5 @@
 import { Role } from "@/lib/enums";
+import { AppError } from "@/lib/http-error";
 
 export type Permission =
   | "viewFinance"
@@ -29,7 +30,7 @@ export function can(role: Role | string, permission: Permission): boolean {
 
 export function assertCan(role: Role | string, permission: Permission) {
   if (!can(role, permission)) {
-    throw new Error("You do not have permission to do that.");
+    throw new AppError("You do not have permission to do that.", 403);
   }
 }
 

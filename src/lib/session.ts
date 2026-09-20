@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Role } from "@/lib/enums";
+import { AppError } from "@/lib/http-error";
 import { Permission, assertCan } from "@/lib/rbac";
 
 export type SessionUser = {
@@ -21,7 +22,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
 export async function requireUser(): Promise<SessionUser> {
   const user = await getSessionUser();
-  if (!user) throw new Error("Sign in to continue.");
+  if (!user) throw new AppError("Sign in to continue.", 401);
   return user;
 }
 
@@ -29,7 +30,7 @@ export async function requirePermission(permission: Permission): Promise<Session
   const user = await requireUser();
   assertCan(user.role, permission);
   if (permission !== "manageUsers" && !user.villageId) {
-    throw new Error("Your account is not assigned to a village yet.");
+    throw new AppError("Your account is not assigned to a village yet.", 403);
   }
   return user;
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 
@@ -12,7 +13,7 @@ export async function GET() {
     });
     return NextResponse.json(people);
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    return jsonError(error);
   }
 }
 
@@ -38,6 +39,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(person, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    return jsonError(error);
   }
 }

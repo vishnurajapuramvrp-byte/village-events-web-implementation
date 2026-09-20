@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
 import { EventStatus } from "@/lib/enums";
 import { writeAudit } from "@/lib/audit";
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
       events.map((event, index) => ({ ...event, ledger: balances[index] })),
     );
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    return jsonError(error);
   }
 }
 
@@ -50,6 +51,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    return jsonError(error);
   }
 }
