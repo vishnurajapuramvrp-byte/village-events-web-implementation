@@ -72,6 +72,8 @@ if (demoLoginEnabled()) {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  trustHost: true,
+  useSecureCookies: process.env.NODE_ENV === "production",
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true,
