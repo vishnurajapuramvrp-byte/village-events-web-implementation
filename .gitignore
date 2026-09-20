@@ -37,6 +37,10 @@ prisma/*.db-journal
 # vercel
 .vercel
 
+# agent extras from marketplace CLI
+.agents/
+skills-lock.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
