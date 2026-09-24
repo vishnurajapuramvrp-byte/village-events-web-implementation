@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate, cn } from "@/lib/utils";
+import { ExcelImportForm } from "@/components/excel-import-form";
+import { deleteEventAction } from "@/app/actions";
 
 export default async function EventsPage({
   searchParams,
@@ -45,6 +47,8 @@ export default async function EventsPage({
           </Button>
         ) : null}
       </div>
+
+      {can(user.role, "writeEvents") ? <ExcelImportForm /> : null}
 
       {years.length > 0 ? (
         <div className="flex flex-wrap gap-2">
@@ -93,6 +97,7 @@ export default async function EventsPage({
                 <TableHead>Dates</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Distributable</TableHead>
+                {can(user.role, "writeEvents") ? <TableHead>Actions</TableHead> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -111,6 +116,17 @@ export default async function EventsPage({
                       <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
                     </TableCell>
                     <TableCell className="text-right">{formatINR(balances[index].distributableBalancePaise)}</TableCell>
+                    {can(user.role, "writeEvents") ? (
+                      <TableCell>
+                        {event.status === "CLOSED" ? (
+                          <span className="text-xs text-muted-foreground">Locked</span>
+                        ) : (
+                          <form action={deleteEventAction.bind(null, event.id)}>
+                            <button type="submit" className="text-sm text-destructive hover:underline">Delete</button>
+                          </form>
+                        )}
+                      </TableCell>
+                    ) : null}
                   </TableRow>
                 );
               })}

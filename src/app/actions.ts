@@ -12,6 +12,8 @@ import {
   createDonationRecord,
   createDistributionRecord,
   createExpenseRecord,
+  deleteDonationRecord,
+  deleteExpenseRecord,
   updateDonationRecord,
   updateDistributionRecord,
   updateExpenseRecord,
@@ -112,6 +114,51 @@ export async function editExpenseAction(eventId: string, expenseId: string, form
     actorUserId: user.id,
   });
   revalidatePath(`/events/${eventId}`);
+}
+
+export async function deleteDonationAction(eventId: string, donationId: string) {
+  const user = await requirePermission("writeFinance");
+  await deleteDonationRecord({ id: donationId, actorUserId: user.id });
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function deleteExpenseAction(eventId: string, expenseId: string) {
+  const user = await requirePermission("writeFinance");
+  await deleteExpenseRecord({ id: expenseId, actorUserId: user.id });
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function updateEventAction(eventId: string, formData: FormData) {
+  const user = await requirePermission("writeEvents");
+  const existing = await prisma.event.findFirstOrThrow({ where: { id: eventId, villageId: user.villageId! } });
+  if (existing.status === EventStatus.CLOSED) throw new Error("This event is closed.");
+  const name = formString(formData, "name");
+  if (!name) throw new Error("Event name is required.");
+  const startDate = new Date(formString(formData, "startDate"));
+  const updated = await prisma.event.update({
+    where: { id: eventId },
+    data: {
+      name,
+      description: formString(formData, "description") || null,
+      startDate,
+      endDate: formString(formData, "endDate") ? new Date(formString(formData, "endDate")) : null,
+      year: parseEventYear(formData.get("year") || yearFromDate(startDate)),
+      openingBalancePaise: parseRupeeInput(formData.get("openingBalance") || "0"),
+    },
+  });
+  await writeAudit({ userId: user.id, action: "UPDATE", entityType: "Event", entityId: eventId, oldValue: existing, newValue: updated });
+  revalidatePath("/events");
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function deleteEventAction(eventId: string) {
+  const user = await requirePermission("writeEvents");
+  const existing = await prisma.event.findFirstOrThrow({ where: { id: eventId, villageId: user.villageId! } });
+  if (existing.status === EventStatus.CLOSED) throw new Error("Closed events cannot be deleted.");
+  await prisma.event.delete({ where: { id: eventId } });
+  await writeAudit({ userId: user.id, action: "DELETE", entityType: "Event", entityId: eventId, oldValue: existing });
+  revalidatePath("/events");
+  redirect("/events");
 }
 
 export async function addDistributionAction(eventId: string, formData: FormData) {

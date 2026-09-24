@@ -149,6 +149,13 @@ export async function updateDonationRecord(input: {
   return donation;
 }
 
+export async function deleteDonationRecord(input: { id: string; actorUserId?: string }) {
+  const existing = await prisma.donation.findUniqueOrThrow({ where: { id: input.id }, include: { event: true } });
+  if (existing.event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
+  await prisma.donation.delete({ where: { id: input.id } });
+  await writeAudit({ userId: input.actorUserId, action: "DELETE", entityType: "Donation", entityId: input.id, oldValue: existing });
+}
+
 export async function createExpenseRecord(input: {
   eventId: string;
   category: string;
@@ -215,6 +222,13 @@ export async function updateExpenseRecord(input: {
   });
   await writeAudit({ userId: input.actorUserId, action: "UPDATE", entityType: "Expense", entityId: expense.id, newValue: expense });
   return expense;
+}
+
+export async function deleteExpenseRecord(input: { id: string; actorUserId?: string }) {
+  const existing = await prisma.expense.findUniqueOrThrow({ where: { id: input.id }, include: { event: true } });
+  if (existing.event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
+  await prisma.expense.delete({ where: { id: input.id } });
+  await writeAudit({ userId: input.actorUserId, action: "DELETE", entityType: "Expense", entityId: input.id, oldValue: existing });
 }
 
 function reminderSchedule(dueDate: Date) {

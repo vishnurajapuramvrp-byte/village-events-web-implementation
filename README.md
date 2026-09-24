@@ -19,6 +19,8 @@ Open [http://localhost:3000](http://localhost:3000). The default seed creates on
 
 For optional demo-only testing, set `ENABLE_DEMO_LOGIN="true"` and run `npm run db:seed:demo`. This resets the local database with demo accounts and sample ledger data.
 
+On the Events screen, users with event-write permission can upload an `.xlsx` workbook. It must contain `Event Details`, `Donations`, and `Expenses` sheets; numbered names such as `1. Event Details` are also accepted. Matching events are updated by name and year, while donation and expense rows are imported into the event.
+
 
 ## Production on Vercel
 

@@ -6,9 +6,12 @@ import {
   addExpenseAction,
   addPaymentAction,
   closeEventAction,
+  deleteDonationAction,
+  deleteExpenseAction,
   editDonationAction,
   editDistributionAction,
   editExpenseAction,
+  updateEventAction,
 } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/session";
@@ -67,9 +70,23 @@ export default async function EventDetailPage({ params }: { params: { id: string
             <a href={`/api/reports/${event.id}/pdf`}>Download PDF</a>
           </Button>
           {can(user.role, "writeEvents") && event.status !== "CLOSED" ? (
-            <form action={closeEventAction.bind(null, event.id)}>
-              <SubmitButton>Close event</SubmitButton>
-            </form>
+            <>
+              <details>
+                <summary className="cursor-pointer rounded-md border border-border px-3 py-2 text-sm">Edit event</summary>
+                <form action={updateEventAction.bind(null, event.id)} className="absolute z-10 mt-2 grid w-[min(90vw,32rem)] gap-3 rounded-lg border border-border bg-card p-4 text-left shadow-lg sm:grid-cols-2">
+                  <Input name="name" defaultValue={event.name} placeholder="Event name" required />
+                  <Input name="year" type="number" defaultValue={event.year} min="1990" max="2200" required />
+                  <Textarea name="description" defaultValue={event.description ?? ""} placeholder="Description" className="sm:col-span-2" />
+                  <Input name="startDate" type="date" defaultValue={dateValue(event.startDate)} required />
+                  <Input name="endDate" type="date" defaultValue={event.endDate ? dateValue(event.endDate) : ""} />
+                  <Input name="openingBalance" type="number" step="0.01" min="0" defaultValue={(event.openingBalancePaise / 100).toFixed(2)} />
+                  <SubmitButton>Save event</SubmitButton>
+                </form>
+              </details>
+              <form action={closeEventAction.bind(null, event.id)}>
+                <SubmitButton>Close event</SubmitButton>
+              </form>
+            </>
           ) : null}
         </div>
       </div>
@@ -152,6 +169,11 @@ export default async function EventDetailPage({ params }: { params: { id: string
                             </form>
                           </details>
                         ) : null}
+                        {canWrite ? (
+                          <form action={deleteDonationAction.bind(null, event.id, row.id)}>
+                            <SubmitButton>Delete</SubmitButton>
+                          </form>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -233,6 +255,11 @@ export default async function EventDetailPage({ params }: { params: { id: string
                               <SubmitButton>Save expense</SubmitButton>
                             </form>
                           </details>
+                        ) : null}
+                        {canWrite ? (
+                          <form action={deleteExpenseAction.bind(null, event.id, row.id)}>
+                            <SubmitButton>Delete</SubmitButton>
+                          </form>
                         ) : null}
                       </TableCell>
                     </TableRow>
