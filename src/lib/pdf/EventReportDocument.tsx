@@ -45,7 +45,13 @@ export type EventReportData = {
   distributedPaise: number;
   availableBeforeDistributionPaise: number;
   distributableBalancePaise: number;
-  donations: { donorName: string; receivedOn: Date; amountPaise: number; method: string }[];
+  donations: {
+    donorName: string;
+    receivedOn: Date;
+    amountPaise: number;
+    method: string;
+    transactionRef?: string | null;
+  }[];
   expenses: { description: string; category: string; incurredOn: Date; amountPaise: number }[];
   distributions: {
     personName: string;
@@ -107,7 +113,11 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
             <View key={index} style={styles.tableRow}>
               <Text style={styles.col}>{row.donorName}</Text>
               <Text style={styles.col}>{formatDate(row.receivedOn)} ({row.method})</Text>
-              <Text style={styles.colRight}>{formatPdfAmount(row.amountPaise)}</Text>
+              <Text style={styles.colRight}>
+                {row.amountPaise === 0 && row.transactionRef
+                  ? `Ref: ${row.transactionRef}`
+                  : formatPdfAmount(row.amountPaise)}
+              </Text>
             </View>
           ))}
         </View>

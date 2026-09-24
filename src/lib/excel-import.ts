@@ -146,6 +146,10 @@ export async function importWorkbook(buffer: Buffer, villageId: string): Promise
       try {
         const donorName = required(row, aliases.donorName, `Donations row ${index + 2} donor`);
         const reference = String(read(row, aliases.transactionRef) ?? "").trim() || null;
+        const donationAmount = amountPaise(read(row, aliases.amount), `Donations row ${index + 2} amount`);
+        if (donationAmount === 0 && !reference) {
+          throw new Error("Transaction reference is required for a zero-amount donation.");
+        }
         if (reference && await transaction.donation.findUnique({ where: { transactionRef: reference } })) {
           skippedRows += 1;
           continue;
@@ -154,7 +158,7 @@ export async function importWorkbook(buffer: Buffer, villageId: string): Promise
           data: {
             eventId: savedEvent.id,
             donorName,
-            amountPaise: amountPaise(read(row, aliases.amount), `Donations row ${index + 2} amount`),
+            amountPaise: donationAmount,
             receivedOn: read(row, aliases.receivedOn)
               ? dateValue(read(row, aliases.receivedOn), `Donations row ${index + 2} date`)
               : startDate,

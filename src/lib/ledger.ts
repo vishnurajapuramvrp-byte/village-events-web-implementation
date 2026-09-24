@@ -79,7 +79,10 @@ export async function createDonationRecord(input: {
   actorUserId?: string;
 }) {
   if (!input.donorName) throw new Error("Donor name is required.");
-  if (input.amountPaise <= 0) throw new Error("Donation amount must be greater than zero.");
+  if (input.amountPaise < 0) throw new Error("Donation amount cannot be negative.");
+  if (input.amountPaise === 0 && !input.transactionRef?.trim()) {
+    throw new Error("Transaction reference is required for a zero-amount donation.");
+  }
 
   const event = await prisma.event.findUniqueOrThrow({ where: { id: input.eventId } });
   if (event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
@@ -125,7 +128,10 @@ export async function updateDonationRecord(input: {
   actorUserId?: string;
 }) {
   if (!input.donorName) throw new Error("Donor name is required.");
-  if (input.amountPaise <= 0) throw new Error("Donation amount must be greater than zero.");
+  if (input.amountPaise < 0) throw new Error("Donation amount cannot be negative.");
+  if (input.amountPaise === 0 && !input.transactionRef?.trim()) {
+    throw new Error("Transaction reference is required for a zero-amount donation.");
+  }
   const existing = await prisma.donation.findUniqueOrThrow({ where: { id: input.id }, include: { event: true } });
   if (existing.event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
   if (input.transactionRef) {

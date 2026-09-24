@@ -158,14 +158,16 @@ export default async function EventDetailPage({ params }: { params: { id: string
                         </div>
                       </TableCell>
                       <TableCell>{formatDate(row.receivedOn)}</TableCell>
-                      <TableCell className="text-right">{formatINR(row.amountPaise)}</TableCell>
+                      <TableCell className="text-right">
+                        {row.amountPaise === 0 && row.transactionRef ? `Ref: ${row.transactionRef}` : formatINR(row.amountPaise)}
+                      </TableCell>
                       <TableCell>
                         {canWrite ? (
                           <details>
                             <summary className="cursor-pointer text-sm text-primary">Edit</summary>
                             <form action={editDonationAction.bind(null, event.id, row.id)} className="mt-3 grid gap-2 sm:grid-cols-2">
                               <Input name="donorName" defaultValue={row.donorName} required />
-                              <Input name="amount" type="number" step="0.01" min="0.01" defaultValue={(row.amountPaise / 100).toFixed(2)} required />
+                              <Input name="amount" type="number" step="0.01" min="0" defaultValue={(row.amountPaise / 100).toFixed(2)} required />
                               <Input name="receivedOn" type="date" defaultValue={dateValue(row.receivedOn)} required />
                               <select name="method" defaultValue={row.method} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
                                 <option>CASH</option><option>UPI</option><option>BANK</option><option>OTHER</option>
@@ -194,7 +196,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="amount">Amount (₹)</Label>
-                  <Input id="amount" name="amount" type="number" step="0.01" min="0.01" required />
+                  <Input id="amount" name="amount" type="number" step="0.01" min="0" required />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="receivedOn">Received on</Label>
