@@ -21,6 +21,15 @@ async function main() {
         organizationId: organization.id,
       },
     });
+  } else {
+    village = await prisma.village.update({
+      where: { id: village.id },
+      data: {
+        name: villageName,
+        district: process.env.VILLAGE_DISTRICT?.trim() || village.district,
+        state: process.env.VILLAGE_STATE?.trim() || village.state,
+      },
+    });
   }
 
   console.log(`Production seed ready: ${organization.name} / ${village.name} (${village.id})`);
