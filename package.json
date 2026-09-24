@@ -31,6 +31,7 @@
     "lucide-react": "^0.460.0",
     "next": "14.2.35",
     "next-auth": "^4.24.15",
+    "pdfkit": "^0.20.1",
     "prisma": "5.22.0",
     "react": "^18",
     "react-dom": "^18",
