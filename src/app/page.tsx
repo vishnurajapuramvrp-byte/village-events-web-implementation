@@ -3,7 +3,6 @@ import { Landmark } from "lucide-react";
 import { getSessionUser } from "@/lib/session";
 import { SignInForm } from "@/components/sign-in-form";
 import { demoLoginEnabled, googleLoginEnabled } from "@/lib/auth";
-import { designatedAdminEmails } from "@/lib/gmail";
 import { getSiteBranding } from "@/lib/site";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -11,7 +10,6 @@ export default async function HomePage() {
   const user = await getSessionUser();
   if (user) redirect("/dashboard");
   const [googleEnabled, demoEnabled, site] = [googleLoginEnabled(), demoLoginEnabled(), await getSiteBranding()];
-  const adminEmail = designatedAdminEmails()[0];
 
   return (
     <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-2">
@@ -34,9 +32,7 @@ export default async function HomePage() {
           <CardDescription>
             {demoEnabled
               ? "Local testing uses demo accounts. Production uses Gmail only."
-              : adminEmail
-                ? `Sign in with Gmail. ${adminEmail} becomes Admin; other Gmail users start as Viewer.`
-                : "Sign in with Gmail. New users start as Viewer until an Admin assigns a role."}
+              : "Sign in with Gmail. New users start as Viewer until an Admin assigns a role."}
           </CardDescription>
         </CardHeader>
         <CardContent>
