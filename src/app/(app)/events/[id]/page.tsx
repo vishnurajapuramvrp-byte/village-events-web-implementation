@@ -91,7 +91,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader>
             <CardDescription>Opening</CardDescription>
@@ -102,6 +102,12 @@ export default async function EventDetailPage({ params }: { params: { id: string
           <CardHeader>
             <CardDescription>Donations</CardDescription>
             <CardTitle>{formatINR(balance.donationsPaise)}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Expenses</CardDescription>
+            <CardTitle>{formatINR(balance.expensesPaise)}</CardTitle>
           </CardHeader>
         </Card>
         <Card>

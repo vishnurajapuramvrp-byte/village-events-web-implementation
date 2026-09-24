@@ -1,6 +1,12 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import { formatINR } from "@/lib/money";
 import { formatDate } from "@/lib/utils";
+
+function formatPdfAmount(paise: number) {
+  return `INR ${(paise / 100).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 
 const styles = StyleSheet.create({
   page: { padding: 36, fontSize: 10, fontFamily: "Helvetica", color: "#1f2937" },
@@ -66,27 +72,27 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
           <Text style={styles.heading}>Computed balance</Text>
           <View style={styles.row}>
             <Text>Opening balance</Text>
-            <Text>{formatINR(data.openingBalancePaise)}</Text>
+            <Text>{formatPdfAmount(data.openingBalancePaise)}</Text>
           </View>
           <View style={styles.row}>
             <Text>Donations (income)</Text>
-            <Text>{formatINR(data.donationsPaise)}</Text>
+            <Text>{formatPdfAmount(data.donationsPaise)}</Text>
           </View>
           <View style={styles.row}>
             <Text>Expenses</Text>
-            <Text>{formatINR(data.expensesPaise)}</Text>
+            <Text>{formatPdfAmount(data.expensesPaise)}</Text>
           </View>
           <View style={styles.row}>
             <Text>Available before distribution</Text>
-            <Text>{formatINR(data.availableBeforeDistributionPaise)}</Text>
+            <Text>{formatPdfAmount(data.availableBeforeDistributionPaise)}</Text>
           </View>
           <View style={styles.row}>
             <Text>Distributed principal</Text>
-            <Text>{formatINR(data.distributedPaise)}</Text>
+            <Text>{formatPdfAmount(data.distributedPaise)}</Text>
           </View>
           <View style={styles.row}>
             <Text>Distributable balance</Text>
-            <Text>{formatINR(data.distributableBalancePaise)}</Text>
+            <Text>{formatPdfAmount(data.distributableBalancePaise)}</Text>
           </View>
         </View>
 
@@ -101,7 +107,7 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
             <View key={index} style={styles.tableRow}>
               <Text style={styles.col}>{row.donorName}</Text>
               <Text style={styles.col}>{formatDate(row.receivedOn)} ({row.method})</Text>
-              <Text style={styles.colRight}>{formatINR(row.amountPaise)}</Text>
+              <Text style={styles.colRight}>{formatPdfAmount(row.amountPaise)}</Text>
             </View>
           ))}
         </View>
@@ -117,7 +123,7 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
             <View key={index} style={styles.tableRow}>
               <Text style={styles.col}>{row.description} · {row.category}</Text>
               <Text style={styles.col}>{formatDate(row.incurredOn)}</Text>
-              <Text style={styles.colRight}>{formatINR(row.amountPaise)}</Text>
+              <Text style={styles.colRight}>{formatPdfAmount(row.amountPaise)}</Text>
             </View>
           ))}
         </View>
@@ -134,7 +140,7 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
               <Text style={styles.col}>{row.personName}</Text>
               <Text style={styles.col}>{formatDate(row.dueDate)}</Text>
               <Text style={styles.colRight}>
-                {formatINR(row.principalPaise)} / {formatINR(row.repaidPaise)}
+                {formatPdfAmount(row.principalPaise)} / {formatPdfAmount(row.repaidPaise)}
               </Text>
             </View>
           ))}
