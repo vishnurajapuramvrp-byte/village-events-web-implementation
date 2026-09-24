@@ -51,17 +51,18 @@ export function AppShell({
     : links.filter((item) => can(user.role, item.permission));
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
-      <aside className="border-b border-border bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))] lg:border-b-0 lg:border-r">
+    <div className="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
+      <aside className="border-b border-white/10 bg-sidebar text-sidebar-foreground lg:border-b-0 lg:border-r lg:border-white/10">
         <div className="flex items-center gap-3 px-5 py-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20">
             <Landmark className="h-5 w-5" />
           </div>
           <div>
             <p className="text-sm font-semibold leading-tight">{villageName}</p>
-            <p className="text-xs text-muted-foreground">{tagline}</p>
+            <p className="text-xs text-white/55">{tagline}</p>
           </div>
         </div>
+        <div className="rangoli-rule mx-5 mb-4 h-px opacity-40" />
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible">
           {nav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -72,7 +73,7 @@ export function AppShell({
                 href={item.href}
                 className={cn(
                   "flex items-center gap-2 rounded-lg px-3 py-2 text-sm whitespace-nowrap",
-                  active ? "bg-primary/15 font-medium text-primary" : "hover:bg-muted",
+                  active ? "bg-primary font-medium text-primary-foreground shadow-sm" : "text-white/70 hover:bg-white/10 hover:text-white",
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -81,9 +82,9 @@ export function AppShell({
             );
           })}
         </nav>
-        <div className="hidden border-t border-border px-5 py-4 lg:block">
+        <div className="hidden border-t border-white/10 px-5 py-4 lg:block">
           <p className="truncate text-sm font-medium">{user.name ?? user.email}</p>
-          <p className="text-xs text-muted-foreground">{roleLabel(user.role)}</p>
+          <p className="text-xs text-white/55">{roleLabel(user.role)}</p>
           <Button variant="ghost" size="sm" className="mt-3 w-full justify-start px-2" onClick={() => signOut({ callbackUrl: "/" })}>
             <LogOut className="h-4 w-4" />
             Sign out
@@ -91,7 +92,7 @@ export function AppShell({
         </div>
       </aside>
       <div className="flex min-h-screen flex-col">
-        <header className="flex items-center justify-between border-b border-border bg-card/70 px-4 py-3 backdrop-blur lg:hidden">
+        <header className="flex items-center justify-between border-b border-border bg-card/80 px-4 py-3 backdrop-blur lg:hidden">
           <p className="text-sm font-medium">{user.name ?? "Signed in"}</p>
           <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
             Sign out

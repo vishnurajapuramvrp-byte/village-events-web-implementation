@@ -3,26 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --background: 36 45% 96%;
-  --foreground: 24 20% 16%;
-  --card: 40 50% 98%;
-  --card-foreground: 24 20% 16%;
-  --primary: 18 72% 42%;
-  --primary-foreground: 36 40% 98%;
-  --secondary: 36 30% 90%;
-  --secondary-foreground: 24 20% 20%;
-  --muted: 36 24% 92%;
-  --muted-foreground: 24 10% 40%;
-  --accent: 152 28% 32%;
-  --accent-foreground: 40 40% 98%;
+  --background: 37 48% 95%;
+  --foreground: 23 28% 15%;
+  --card: 42 55% 98%;
+  --card-foreground: 23 28% 15%;
+  --primary: 13 76% 43%;
+  --primary-foreground: 42 55% 98%;
+  --secondary: 39 38% 88%;
+  --secondary-foreground: 23 28% 20%;
+  --muted: 38 28% 90%;
+  --muted-foreground: 25 13% 40%;
+  --accent: 153 36% 28%;
+  --accent-foreground: 42 55% 98%;
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 98%;
-  --border: 30 20% 86%;
-  --input: 30 20% 86%;
-  --ring: 18 72% 42%;
-  --radius: 0.85rem;
-  --sidebar: 36 38% 94%;
-  --sidebar-foreground: 24 20% 16%;
+  --border: 31 28% 82%;
+  --input: 31 28% 82%;
+  --ring: 13 76% 43%;
+  --radius: 0.7rem;
+  --sidebar: 155 25% 18%;
+  --sidebar-foreground: 42 55% 98%;
 }
 
 * {
@@ -32,7 +32,41 @@
 body {
   @apply bg-background text-foreground antialiased;
   background-image:
-    radial-gradient(circle at top left, hsl(18 72% 42% / 0.08), transparent 28%),
-    radial-gradient(circle at top right, hsl(152 28% 32% / 0.08), transparent 24%);
+    linear-gradient(120deg, hsl(39 60% 95% / 0.8), transparent 42%),
+    radial-gradient(circle at 90% 0%, hsl(13 76% 43% / 0.12), transparent 28%),
+    radial-gradient(circle at 0% 100%, hsl(153 36% 28% / 0.09), transparent 30%);
   min-height: 100vh;
+}
+
+.display-type {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.rangoli-rule {
+  background-image: radial-gradient(circle, hsl(13 76% 43% / 0.55) 1px, transparent 1.5px);
+  background-size: 9px 9px;
+}
+
+.festival-photo {
+  background-color: hsl(153 36% 20%);
+  background-position: center;
+  background-size: cover;
+}
+
+.festival-photo--ganesha {
+  background-image:
+    linear-gradient(180deg, hsl(153 36% 14% / 0.05), hsl(13 76% 20% / 0.55)),
+    url("/images/ganesha-festival.jpg");
+}
+
+.festival-photo--shrine {
+  background-image:
+    linear-gradient(180deg, hsl(153 36% 14% / 0.05), hsl(153 36% 14% / 0.55)),
+    url("/images/devotional-shrine.jpg");
+}
+
+.festival-photo--altar {
+  background-image:
+    linear-gradient(180deg, hsl(13 76% 20% / 0.05), hsl(13 76% 20% / 0.5)),
+    url("/images/ritual-altar.jpg");
 }

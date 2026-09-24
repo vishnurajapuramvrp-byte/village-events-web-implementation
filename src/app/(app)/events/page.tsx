@@ -38,7 +38,8 @@ export default async function EventsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Events</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Programme archive</p>
+          <h1 className="display-type mt-2 text-4xl">Events</h1>
           <p className="text-sm text-muted-foreground">Festival funds grouped by programme year.</p>
         </div>
         {can(user.role, "writeEvents") ? (
@@ -46,6 +47,15 @@ export default async function EventsPage({
             <Link href="/events/new">New event</Link>
           </Button>
         ) : null}
+      </div>
+
+      <div className="festival-photo festival-photo--altar relative min-h-36 overflow-hidden rounded-xl p-6 text-white shadow-lg shadow-primary/10">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/55 to-transparent" />
+        <div className="relative max-w-md space-y-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/75">A record of care</p>
+          <p className="display-type text-2xl">Every programme has a story.</p>
+          <p className="text-sm text-white/80">Open an event to follow its offerings, costs, and support.</p>
+        </div>
       </div>
 
       {can(user.role, "writeEvents") ? <ExcelImportForm /> : null}
@@ -88,7 +98,35 @@ export default async function EventsPage({
       ) : visible.length === 0 ? (
         <EmptyState title="No events in this year" description="Choose another year or create a new event." />
       ) : (
-        <div className="rounded-xl border border-border bg-card">
+        <>
+          <div className="grid gap-3 sm:hidden">
+            {visible.map((event) => {
+              const index = events.findIndex((row) => row.id === event.id);
+              return (
+                <div key={event.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <Link href={`/events/${event.id}`} className="font-semibold hover:text-primary">{event.name}</Link>
+                      <p className="mt-1 text-xs text-muted-foreground">{event.year} · {formatDate(event.startDate)}</p>
+                    </div>
+                    <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
+                  </div>
+                  <div className="mt-4 flex items-end justify-between border-t border-border pt-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Distributable</p>
+                      <p className="mt-1 text-lg font-semibold">{formatINR(balances[index].distributableBalancePaise)}</p>
+                    </div>
+                    {can(user.role, "writeEvents") && event.status !== "CLOSED" ? (
+                      <form action={deleteEventAction.bind(null, event.id)}>
+                        <button type="submit" className="text-xs text-destructive hover:underline">Delete</button>
+                      </form>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="hidden rounded-xl border border-border bg-card sm:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -132,7 +170,8 @@ export default async function EventsPage({
               })}
             </TableBody>
           </Table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

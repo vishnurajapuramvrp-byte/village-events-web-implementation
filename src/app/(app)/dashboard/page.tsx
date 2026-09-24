@@ -77,11 +77,12 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
             {village.organization.name} · {village.name}
             {village.district ? `, ${village.district}` : ""}
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <h1 className="display-type mt-2 text-4xl tracking-tight">The Village ledger</h1>
+          <p className="mt-2 text-sm text-muted-foreground">A living view of every contribution, expense, and family supported.</p>
         </div>
         {can(user.role, "writeEvents") ? (
           <Button asChild>
@@ -90,8 +91,17 @@ export default async function DashboardPage() {
         ) : null}
       </div>
 
+      <div className="festival-photo festival-photo--shrine relative min-h-44 overflow-hidden rounded-xl p-6 text-white shadow-lg shadow-accent/10 sm:p-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-accent/95 via-accent/65 to-transparent" />
+        <div className="relative max-w-lg space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">This year in the village</p>
+          <h2 className="display-type text-3xl">Keep the devotion visible.</h2>
+          <p className="text-sm leading-6 text-white/80">Every number here comes from the records your committee keeps together.</p>
+        </div>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="border-t-4 border-t-primary">
           <CardHeader>
             <CardDescription className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" /> Events
@@ -99,7 +109,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-3xl">{events.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="border-t-4 border-t-accent">
           <CardHeader>
             <CardDescription className="flex items-center gap-2">
               <Coins className="h-4 w-4" /> Cash across events
@@ -107,7 +117,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-3xl">{formatINR(cash)}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="border-t-4 border-t-secondary-foreground">
           <CardHeader>
             <CardDescription className="flex items-center gap-2">
               <HandCoins className="h-4 w-4" /> Open distributions

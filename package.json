@@ -6,7 +6,7 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "next dev -H 127.0.0.1 -p 43123",
+    "dev": "next dev -H 127.0.0.1 -p 3000",
     "build": "node scripts/prisma-generate.mjs && node scripts/prisma-migrate-deploy.mjs && next build",
     "start": "next start -H 127.0.0.1 -p 43123",
     "lint": "next lint",
