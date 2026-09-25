@@ -34,6 +34,14 @@ export const InterestMethod = {
 
 export type InterestMethod = (typeof InterestMethod)[keyof typeof InterestMethod];
 
+export const DistributionFundingSource = {
+  DONATION: "DONATION",
+  EVENT_GENERATED: "EVENT_GENERATED",
+} as const;
+
+export type DistributionFundingSource =
+  (typeof DistributionFundingSource)[keyof typeof DistributionFundingSource];
+
 export const ReminderKind = {
   DAYS_30: "DAYS_30",
   DAYS_7: "DAYS_7",

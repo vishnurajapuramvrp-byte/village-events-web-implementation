@@ -112,9 +112,15 @@ export default async function EventsPage({
                     <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
                   </div>
                   <div className="mt-4 flex items-end justify-between border-t border-border pt-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Distributable</p>
-                      <p className="mt-1 text-lg font-semibold">{formatINR(balances[index].distributableBalancePaise)}</p>
+                    <div className="flex gap-6">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Distributed</p>
+                        <p className="mt-1 text-lg font-semibold">{formatINR(balances[index].distributedPaise + balances[index].eventGeneratedPaise)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Distributable</p>
+                        <p className="mt-1 text-lg font-semibold">{formatINR(balances[index].distributableBalancePaise)}</p>
+                      </div>
                     </div>
                     {can(user.role, "writeEvents") && event.status !== "CLOSED" ? (
                       <form action={deleteEventAction.bind(null, event.id)}>
@@ -134,6 +140,7 @@ export default async function EventsPage({
                 <TableHead>Year</TableHead>
                 <TableHead>Dates</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="text-right">Distributed</TableHead>
                 <TableHead className="text-right">Distributable</TableHead>
                 {can(user.role, "writeEvents") ? <TableHead>Actions</TableHead> : null}
               </TableRow>
@@ -153,6 +160,7 @@ export default async function EventsPage({
                     <TableCell>
                       <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
                     </TableCell>
+                    <TableCell className="text-right">{formatINR(balances[index].distributedPaise + balances[index].eventGeneratedPaise)}</TableCell>
                     <TableCell className="text-right">{formatINR(balances[index].distributableBalancePaise)}</TableCell>
                     {can(user.role, "writeEvents") ? (
                       <TableCell>

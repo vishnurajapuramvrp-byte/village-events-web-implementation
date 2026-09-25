@@ -43,6 +43,8 @@ export type EventReportData = {
   donationsPaise: number;
   expensesPaise: number;
   distributedPaise: number;
+  totalDistributedPaise: number;
+  totalAvailablePaise: number;
   availableBeforeDistributionPaise: number;
   distributableBalancePaise: number;
   donations: {
@@ -90,11 +92,11 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
           </View>
           <View style={styles.row}>
             <Text>Available before distribution</Text>
-            <Text>{formatPdfAmount(data.availableBeforeDistributionPaise)}</Text>
+            <Text>{formatPdfAmount(data.totalAvailablePaise)}</Text>
           </View>
           <View style={styles.row}>
             <Text>Distributed principal</Text>
-            <Text>{formatPdfAmount(data.distributedPaise)}</Text>
+            <Text>{formatPdfAmount(data.totalDistributedPaise)}</Text>
           </View>
           <View style={styles.row}>
             <Text>Distributable balance</Text>

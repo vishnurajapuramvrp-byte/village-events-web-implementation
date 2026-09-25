@@ -1,4 +1,10 @@
-import { EventStatus, InterestMethod, PaymentMethod, ReminderKind } from "@/lib/enums";
+import {
+  DistributionFundingSource,
+  EventStatus,
+  InterestMethod,
+  PaymentMethod,
+  ReminderKind,
+} from "@/lib/enums";
 import { writeAudit } from "@/lib/audit";
 import { addDays, addYears, simpleInterestPaise } from "@/lib/interest";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +14,9 @@ export type LedgerTotals = {
   donationsPaise: number;
   expensesPaise: number;
   distributedPaise: number;
+  eventGeneratedPaise: number;
+  totalDistributedPaise: number;
+  totalAvailablePaise: number;
   availableBeforeDistributionPaise: number;
   distributableBalancePaise: number;
 };
@@ -18,13 +27,34 @@ export async function getEventLedgerTotals(eventId: string): Promise<LedgerTotal
     include: {
       donations: { select: { amountPaise: true } },
       expenses: { select: { amountPaise: true } },
-      distributions: { select: { principalPaise: true } },
+      distributions: {
+        select: {
+          principalPaise: true,
+          fundingSource: true,
+          payments: { select: { amountPaise: true } },
+        },
+      },
     },
   });
 
   const donationsPaise = event.donations.reduce((sum, row) => sum + row.amountPaise, 0);
   const expensesPaise = event.expenses.reduce((sum, row) => sum + row.amountPaise, 0);
-  const distributedPaise = event.distributions.reduce((sum, row) => sum + row.principalPaise, 0);
+  const distributedPaise = event.distributions.reduce(
+    (sum, row) =>
+      sum +
+      (row.fundingSource === DistributionFundingSource.DONATION
+        ? netDistributedPaise(row.principalPaise, row.payments)
+        : 0),
+    0,
+  );
+  const eventGeneratedPaise = event.distributions.reduce(
+    (sum, row) =>
+      sum +
+      (row.fundingSource === DistributionFundingSource.EVENT_GENERATED
+        ? row.principalPaise
+        : 0),
+    0,
+  );
   const availableBeforeDistributionPaise =
     event.openingBalancePaise + donationsPaise - expensesPaise;
   const distributableBalancePaise = availableBeforeDistributionPaise - distributedPaise;
@@ -34,14 +64,26 @@ export async function getEventLedgerTotals(eventId: string): Promise<LedgerTotal
     donationsPaise,
     expensesPaise,
     distributedPaise,
+    eventGeneratedPaise,
+    totalDistributedPaise: distributedPaise + eventGeneratedPaise,
+    totalAvailablePaise: availableBeforeDistributionPaise + eventGeneratedPaise,
     availableBeforeDistributionPaise,
     distributableBalancePaise,
   };
 }
 
+export function netDistributedPaise(
+  principalPaise: number,
+  payments: { amountPaise: number }[],
+) {
+  const repaidPaise = payments.reduce((sum, payment) => sum + payment.amountPaise, 0);
+  return Math.max(0, principalPaise - repaidPaise);
+}
+
 export function distributionSnapshot(
   row: {
     principalPaise: number;
+      fundingSource?: DistributionFundingSource | string;
     interestMethod: string;
     interestRateBps: number;
     fixedInterestPaise: number;
@@ -256,6 +298,7 @@ export async function createDistributionRecord(input: {
   guarantorTwoName: string;
   guarantorTwoPhone: string;
   principalPaise: number;
+  fundingSource?: DistributionFundingSource | string;
   interestMethod: InterestMethod | string;
   interestRateBps: number;
   fixedInterestPaise?: number;
@@ -277,7 +320,10 @@ export async function createDistributionRecord(input: {
   if (event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
 
   const totals = await getEventLedgerTotals(input.eventId);
-  if (input.principalPaise > totals.distributableBalancePaise) {
+  if (
+    input.fundingSource !== DistributionFundingSource.EVENT_GENERATED &&
+    input.principalPaise > totals.distributableBalancePaise
+  ) {
     throw new Error("Distribution cannot exceed the current distributable balance.");
   }
 
@@ -301,6 +347,7 @@ export async function createDistributionRecord(input: {
       guarantorTwoName: input.guarantorTwoName.trim(),
       guarantorTwoPhone: input.guarantorTwoPhone.trim(),
       principalPaise: input.principalPaise,
+      fundingSource: input.fundingSource ?? DistributionFundingSource.DONATION,
       interestMethod: input.interestMethod,
       interestRateBps: input.interestRateBps,
       fixedInterestPaise: input.fixedInterestPaise ?? 0,
@@ -331,6 +378,7 @@ export async function updateDistributionRecord(input: {
   guarantorTwoName: string;
   guarantorTwoPhone: string;
   principalPaise: number;
+  fundingSource?: DistributionFundingSource | string;
   interestMethod: InterestMethod | string;
   interestRateBps: number;
   fixedInterestPaise?: number;
@@ -346,7 +394,14 @@ export async function updateDistributionRecord(input: {
   const existing = await prisma.distribution.findUniqueOrThrow({ where: { id: input.id }, include: { event: true, person: true } });
   if (existing.event.status === EventStatus.CLOSED) throw new Error("This event is closed.");
   const totals = await getEventLedgerTotals(existing.eventId);
-  if (input.principalPaise > totals.distributableBalancePaise + existing.principalPaise) {
+  if (
+    input.fundingSource !== DistributionFundingSource.EVENT_GENERATED &&
+    input.principalPaise >
+      totals.distributableBalancePaise +
+        (existing.fundingSource === DistributionFundingSource.DONATION
+          ? existing.principalPaise
+          : 0)
+  ) {
     throw new Error("Distribution cannot exceed the current distributable balance.");
   }
   const distribution = await prisma.$transaction(async (transaction) => {
@@ -361,6 +416,7 @@ export async function updateDistributionRecord(input: {
       where: { id: input.id },
       data: {
         principalPaise: input.principalPaise,
+        fundingSource: input.fundingSource ?? DistributionFundingSource.DONATION,
         interestMethod: input.interestMethod,
         interestRateBps: input.interestRateBps,
         fixedInterestPaise: input.fixedInterestPaise ?? 0,

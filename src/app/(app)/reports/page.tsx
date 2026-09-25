@@ -54,7 +54,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: { ev
                         <div>
                           <CardTitle>{event.name}</CardTitle>
                           <CardDescription>
-                            Available {formatINR(balances[index].availableBeforeDistributionPaise)} ·
+                            Available {formatINR(balances[index].totalAvailablePaise)} ·
+                            distributed {formatINR(balances[index].totalDistributedPaise)} ·
                             distributable {formatINR(balances[index].distributableBalancePaise)}
                           </CardDescription>
                         </div>

@@ -14,7 +14,7 @@ const labels: Record<string, string> = {
 };
 
 export default async function RemindersPage({ searchParams }: { searchParams: { eventId?: string } }) {
-  const user = await requirePermission("viewFinance");
+  const user = await requirePermission("viewReminders");
   const events = await prisma.event.findMany({
     where: { villageId: user.villageId! },
     orderBy: [{ year: "desc" }, { startDate: "desc" }],

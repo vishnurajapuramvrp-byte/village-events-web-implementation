@@ -3,6 +3,7 @@ import { AppError } from "@/lib/http-error";
 
 export type Permission =
   | "viewFinance"
+  | "viewReminders"
   | "writeFinance"
   | "writeEvents"
   | "writePeople"
@@ -12,14 +13,15 @@ export type Permission =
 const matrix: Record<Role, Permission[]> = {
   [Role.ADMIN]: [
     "viewFinance",
+    "viewReminders",
     "writeFinance",
     "writeEvents",
     "writePeople",
     "viewAudit",
     "manageUsers",
   ],
-  [Role.TREASURER]: ["viewFinance", "writeFinance", "writeEvents", "writePeople", "viewAudit"],
-  [Role.COMMITTEE_MEMBER]: ["viewFinance", "writeEvents", "writePeople"],
+  [Role.TREASURER]: ["viewFinance", "viewReminders", "writeFinance", "writeEvents", "writePeople", "viewAudit"],
+  [Role.COMMITTEE_MEMBER]: ["viewFinance", "viewReminders", "writeEvents", "writePeople"],
   [Role.VIEWER]: ["viewFinance"],
   [Role.RECIPIENT]: [],
 };

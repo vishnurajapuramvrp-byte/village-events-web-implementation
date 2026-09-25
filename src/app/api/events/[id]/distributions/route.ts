@@ -3,7 +3,7 @@ import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
 import { createDistributionRecord } from "@/lib/ledger";
 import { parseRupeeInput } from "@/lib/money";
-import { InterestMethod } from "@/lib/enums";
+import { DistributionFundingSource, InterestMethod } from "@/lib/enums";
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -20,6 +20,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
       guarantorTwoName: String(body.guarantorTwoName ?? ""),
       guarantorTwoPhone: String(body.guarantorTwoPhone ?? ""),
       principalPaise: parseRupeeInput(body.amount ?? body.principalPaise),
+            fundingSource:
+              body.fundingSource === DistributionFundingSource.EVENT_GENERATED
+                ? DistributionFundingSource.EVENT_GENERATED
+                : DistributionFundingSource.DONATION,
       interestMethod: (body.interestMethod as InterestMethod) || InterestMethod.ANNUAL_SIMPLE,
       interestRateBps:
         body.interestRateBps != null

@@ -52,7 +52,7 @@ export default async function DashboardPage() {
 
   const balances = await Promise.all(events.map((event) => getEventLedgerTotals(event.id)));
   const cash = balances.reduce(
-    (sum, item) => sum + item.availableBeforeDistributionPaise,
+    (sum, item) => sum + item.totalAvailablePaise,
     0,
   );
   const outstanding = await prisma.distribution.findMany({
@@ -64,6 +64,17 @@ export default async function DashboardPage() {
     .filter((item) => item.snap.outstandingToDatePaise > 0)
     .sort((a, b) => a.row.dueDate.getTime() - b.row.dueDate.getTime())
     .slice(0, 5);
+  const eventDistributionTotals = new Map(
+    events.map((event) => {
+      const distributions = outstanding.filter((row) => row.eventId === event.id);
+      return [
+        event.id,
+        {
+          distributedPaise: distributions.reduce((sum, row) => sum + row.principalPaise, 0),
+        },
+      ];
+    }),
+  );
 
   const recentAudit = can(user.role, "viewAudit")
     ? await prisma.auditLog.findMany({
@@ -155,9 +166,14 @@ export default async function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
-                    <p className="mt-1 text-sm">{formatINR(balances[index].distributableBalancePaise)}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Distributed</p>
+                    <p className="text-sm">{formatINR(eventDistributionTotals.get(event.id)?.distributedPaise ?? 0)}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Pending for distribution</p>
+                    <p className="text-sm">{formatINR(balances[index].distributableBalancePaise)}</p>
                     <div className="mt-2 flex gap-2 text-xs">
-                      <Link href={`/reminders?eventId=${event.id}`} className="text-primary hover:underline">Reminders</Link>
+                      {can(user.role, "viewReminders") ? (
+                        <Link href={`/reminders?eventId=${event.id}`} className="text-primary hover:underline">Reminders</Link>
+                      ) : null}
                       <Link href={`/reports?eventId=${event.id}`} className="text-primary hover:underline">Report</Link>
                     </div>
                   </div>
@@ -171,7 +187,9 @@ export default async function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <CardTitle>Upcoming dues</CardTitle>
-              <Button variant="outline" size="sm" asChild><Link href="/reminders">All reminders</Link></Button>
+              {can(user.role, "viewReminders") ? (
+                <Button variant="outline" size="sm" asChild><Link href="/reminders">All reminders</Link></Button>
+              ) : null}
             </div>
             <CardDescription>Principal plus accrued interest, minus repayments.</CardDescription>
           </CardHeader>

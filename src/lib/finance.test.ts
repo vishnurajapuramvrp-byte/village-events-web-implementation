@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { InterestMethod } from "./enums";
 import { addYears, daysBetween, simpleInterestPaise } from "./interest";
+import { netDistributedPaise } from "./ledger";
 import { parseRupeeInput } from "./money";
 
 test("parses rupee input as integer paise", () => {
@@ -70,4 +71,19 @@ test("distributable balance formula", () => {
   const distributable = available - distributed;
   assert.equal(available, 86_650_00);
   assert.equal(distributable, 56_650_00);
+});
+
+test("repayments return principal to the distributable balance", () => {
+  assert.equal(
+    netDistributedPaise(30_000_00, [{ amountPaise: 10_000_00 }]),
+    20_000_00,
+  );
+  assert.equal(
+    netDistributedPaise(30_000_00, [{ amountPaise: 30_000_00 }]),
+    0,
+  );
+  assert.equal(
+    netDistributedPaise(30_000_00, [{ amountPaise: 35_000_00 }]),
+    0,
+  );
 });

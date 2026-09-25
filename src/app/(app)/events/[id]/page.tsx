@@ -28,6 +28,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { SubmitButton } from "@/components/submit-button";
 import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/utils";
+import { DistributionFundingSource } from "@/lib/enums";
 
 function dateValue(value: Date) {
   return value.toISOString().slice(0, 10);
@@ -330,7 +331,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
                         simple · due {formatDate(row.dueDate)}
                       </p>
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Recipient: {row.person.phone || "No phone"} · Guarantor 1: {row.guarantorOneName} ({row.guarantorOnePhone}) · Guarantor 2: {row.guarantorTwoName} ({row.guarantorTwoPhone})
+                        {row.fundingSource === DistributionFundingSource.EVENT_GENERATED ? "Event Generated Amount" : "Donation amount"} · Recipient: {row.person.phone || "No phone"} · Guarantor 1: {row.guarantorOneName} ({row.guarantorOnePhone}) · Guarantor 2: {row.guarantorTwoName} ({row.guarantorTwoPhone})
                       </p>
                       {canWrite ? (
                         <details className="mt-3">
@@ -343,6 +344,10 @@ export default async function EventDetailPage({ params }: { params: { id: string
                             <Input name="guarantorTwoName" defaultValue={row.guarantorTwoName ?? ""} placeholder="Guarantor 2 name" required />
                             <Input name="guarantorTwoPhone" defaultValue={row.guarantorTwoPhone ?? ""} placeholder="Guarantor 2 phone" required />
                             <Input name="amount" type="number" step="0.01" min="0.01" defaultValue={(row.principalPaise / 100).toFixed(2)} required />
+                            <select name="fundingSource" defaultValue={row.fundingSource} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                              <option value={DistributionFundingSource.DONATION}>Donation amount</option>
+                              <option value={DistributionFundingSource.EVENT_GENERATED}>Event Generated Amount</option>
+                            </select>
                             <Input name="interestRate" type="number" step="0.01" min="0" defaultValue={(row.interestRateBps / 100).toFixed(2)} required />
                             <select name="interestMethod" defaultValue={row.interestMethod} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
                               <option value="ANNUAL_SIMPLE">Annual simple</option><option value="MONTHLY_SIMPLE">Monthly simple</option><option value="FIXED_AMOUNT">Fixed amount</option><option value="CUSTOM">Custom</option>
@@ -410,6 +415,13 @@ export default async function EventDetailPage({ params }: { params: { id: string
               <div className="space-y-1">
                 <Label htmlFor="dist-amount">Principal (₹)</Label>
                 <Input id="dist-amount" name="amount" type="number" step="0.01" min="0.01" required />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="fundingSource">Amount source</Label>
+                <select id="fundingSource" name="fundingSource" defaultValue={DistributionFundingSource.DONATION} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  <option value={DistributionFundingSource.DONATION}>Donation amount</option>
+                  <option value={DistributionFundingSource.EVENT_GENERATED}>Event Generated Amount</option>
+                </select>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="interestRate">Annual rate (%)</Label>

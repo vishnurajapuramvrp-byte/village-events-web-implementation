@@ -1,0 +1,1 @@
+ALTER TABLE "Distribution" ADD COLUMN "fundingSource" TEXT NOT NULL DEFAULT 'DONATION';

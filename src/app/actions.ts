@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { EventStatus, InterestMethod, PaymentMethod, Role } from "@/lib/enums";
+import { DistributionFundingSource, EventStatus, InterestMethod, PaymentMethod, Role } from "@/lib/enums";
 import { prisma } from "@/lib/prisma";
 import { requirePermission, requireUser } from "@/lib/session";
 import { parseRupeeInput } from "@/lib/money";
@@ -174,6 +174,9 @@ export async function addDistributionAction(eventId: string, formData: FormData)
     guarantorTwoName: formString(formData, "guarantorTwoName"),
     guarantorTwoPhone: formString(formData, "guarantorTwoPhone"),
     principalPaise: parseRupeeInput(formData.get("amount")),
+    fundingSource: formData.get("fundingSource") === DistributionFundingSource.EVENT_GENERATED
+      ? DistributionFundingSource.EVENT_GENERATED
+      : DistributionFundingSource.DONATION,
     interestMethod: (formString(formData, "interestMethod") ||
       "ANNUAL_SIMPLE") as InterestMethod,
     interestRateBps: Math.round(Number(formString(formData, "interestRate") || "0") * 100),
@@ -199,6 +202,9 @@ export async function editDistributionAction(eventId: string, distributionId: st
     guarantorTwoName: formString(formData, "guarantorTwoName"),
     guarantorTwoPhone: formString(formData, "guarantorTwoPhone"),
     principalPaise: parseRupeeInput(formData.get("amount")),
+    fundingSource: formData.get("fundingSource") === DistributionFundingSource.EVENT_GENERATED
+      ? DistributionFundingSource.EVENT_GENERATED
+      : DistributionFundingSource.DONATION,
     interestMethod: (formString(formData, "interestMethod") || "ANNUAL_SIMPLE") as InterestMethod,
     interestRateBps: Math.round(Number(formString(formData, "interestRate") || "0") * 100),
     fixedInterestPaise: formString(formData, "fixedInterest") ? parseRupeeInput(formData.get("fixedInterest")) : 0,

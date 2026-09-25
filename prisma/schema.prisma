@@ -169,6 +169,7 @@ model Distribution {
   guarantorTwoName   String?
   guarantorTwoPhone  String?
   principalPaise     Int
+  fundingSource      String                 @default("DONATION")
   interestMethod     String                 @default("ANNUAL_SIMPLE")
   interestRateBps    Int                    @default(0)
   fixedInterestPaise Int                    @default(0)
