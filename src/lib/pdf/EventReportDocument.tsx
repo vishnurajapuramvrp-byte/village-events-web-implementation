@@ -57,6 +57,7 @@ export type EventReportData = {
   expenses: { description: string; category: string; incurredOn: Date; amountPaise: number }[];
   distributions: {
     personName: string;
+    recipientPhone: string;
     principalPaise: number;
     dueDate: Date;
     repaidPaise: number;
@@ -151,12 +152,14 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
           <Text style={styles.heading}>Distributions</Text>
           <View style={styles.tableHeader}>
             <Text style={styles.col}>Recipient</Text>
+            <Text style={styles.col}>Phone</Text>
             <Text style={styles.col}>Due</Text>
             <Text style={styles.colRight}>Principal / repaid / status</Text>
           </View>
           {data.distributions.map((row, index) => (
             <View key={index} style={styles.tableRow}>
               <Text style={styles.col}>{row.personName}</Text>
+              <Text style={styles.col}>{row.recipientPhone}</Text>
               <Text style={styles.col}>{formatDate(row.dueDate)}</Text>
               <Text style={styles.colRight}>
                 {formatPdfAmount(row.principalPaise)} / {formatPdfAmount(row.repaidPaise)} / {row.repaid ? "Repaid" : "Open"}

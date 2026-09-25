@@ -31,6 +31,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/utils";
 import { DistributionFundingSource } from "@/lib/enums";
+import { canViewPhone, maskPhone } from "@/lib/privacy";
 
 function dateValue(value: Date) {
   return value.toISOString().slice(0, 10);
@@ -389,6 +390,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
           ) : (
             event.distributions.map((row) => {
               const snap = distributionSnapshot(row);
+              const showPhone = canViewPhone(user, row.personId);
               return (
                 <div key={row.id} className="rounded-xl border border-border p-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -399,7 +401,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
                         simple · due {formatDate(row.dueDate)}
                       </p>
                       <p className="mt-2 text-xs text-muted-foreground">
-                        {row.fundingSource === DistributionFundingSource.EVENT_GENERATED ? "Event Generated Amount" : "Donation amount"} · Recipient: {row.person.phone || "No phone"} · Guarantor 1: {row.guarantorOneName} ({row.guarantorOnePhone}) · Guarantor 2: {row.guarantorTwoName} ({row.guarantorTwoPhone})
+                        {row.fundingSource === DistributionFundingSource.EVENT_GENERATED ? "Event Generated Amount" : "Donation amount"} · Recipient: {showPhone ? row.person.phone || "No phone" : maskPhone(row.person.phone)} · Guarantor 1: {row.guarantorOneName} ({showPhone ? row.guarantorOnePhone || "No phone" : maskPhone(row.guarantorOnePhone)}) · Guarantor 2: {row.guarantorTwoName} ({showPhone ? row.guarantorTwoPhone || "No phone" : maskPhone(row.guarantorTwoPhone)})
                       </p>
                       {canWrite ? (
                         <details className="mt-3">

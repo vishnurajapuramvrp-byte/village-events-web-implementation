@@ -5,6 +5,7 @@ import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
 import { distributionSnapshot, getEventLedgerTotals } from "@/lib/ledger";
 import { EventReportDocument } from "@/lib/pdf/EventReportDocument";
+import { canViewPhone, maskPhone } from "@/lib/privacy";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -41,6 +42,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
           expenses: event.expenses,
           distributions: event.distributions.map((row) => ({
             personName: row.person.name,
+            recipientPhone: canViewPhone(user, row.personId) ? row.person.phone || "No phone" : maskPhone(row.person.phone),
             principalPaise: row.principalPaise,
             dueDate: row.dueDate,
             repaidPaise: row.payments.reduce((sum, payment) => sum + payment.amountPaise, 0),
