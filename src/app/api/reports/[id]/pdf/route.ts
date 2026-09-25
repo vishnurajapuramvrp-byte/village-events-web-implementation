@@ -19,6 +19,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
         donations: { orderBy: { receivedOn: "asc" } },
         expenses: { orderBy: { incurredOn: "asc" } },
         distributions: { include: { person: true, payments: true } },
+        feedback: { include: { user: true }, orderBy: { createdAt: "asc" } },
       },
     });
     if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -44,6 +45,12 @@ export async function GET(_request: Request, { params }: { params: { id: string 
             dueDate: row.dueDate,
             repaidPaise: row.payments.reduce((sum, payment) => sum + payment.amountPaise, 0),
             repaid: distributionSnapshot(row).repaid,
+          })),
+          feedback: event.feedback.map((item) => ({
+            authorName: item.user.name ?? item.user.email ?? "User",
+            message: item.message,
+            completed: item.completed,
+            createdAt: item.createdAt,
           })),
         },
       }),

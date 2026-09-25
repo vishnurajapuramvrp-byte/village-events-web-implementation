@@ -22,6 +22,7 @@ export default async function EventsPage({
   const events = await prisma.event.findMany({
     where: { villageId: user.villageId! },
     orderBy: [{ year: "desc" }, { startDate: "desc" }],
+    include: { _count: { select: { feedback: true } } },
   });
   const balances = await Promise.all(events.map((event) => getEventLedgerTotals(event.id)));
   const years = Array.from(new Set(events.map((event) => event.year))).sort((a, b) => b - a);
@@ -89,6 +90,9 @@ export default async function EventsPage({
                     <div>
                       <Link href={`/events/${event.id}`} className="font-semibold hover:text-primary">{event.name}</Link>
                       <p className="mt-1 text-xs text-muted-foreground">{event.year} · {formatDate(event.startDate)}</p>
+                      <Link href={`/events/${event.id}#feedback`} className="mt-2 inline-block text-xs text-primary hover:underline">
+                        Feedback ({event._count.feedback})
+                      </Link>
                     </div>
                     <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
                   </div>
@@ -134,6 +138,9 @@ export default async function EventsPage({
                     <TableCell>
                       <Link href={`/events/${event.id}`} className="font-medium hover:underline">
                         {event.name}
+                      </Link>
+                      <Link href={`/events/${event.id}#feedback`} className="mt-1 block text-xs text-primary hover:underline">
+                        Feedback ({event._count.feedback})
                       </Link>
                     </TableCell>
                     <TableCell>{event.year}</TableCell>

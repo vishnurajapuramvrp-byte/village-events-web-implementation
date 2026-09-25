@@ -4,6 +4,7 @@ import {
   addDonationAction,
   addDistributionAction,
   addExpenseAction,
+  addFeedbackAction,
   addPaymentAction,
   closeEventAction,
   deleteDonationAction,
@@ -11,6 +12,7 @@ import {
   editDonationAction,
   editDistributionAction,
   editExpenseAction,
+  setFeedbackCompletedAction,
   updateEventAction,
 } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
@@ -43,6 +45,10 @@ export default async function EventDetailPage({ params }: { params: { id: string
       expenses: { orderBy: { incurredOn: "desc" } },
       distributions: {
         include: { person: true, payments: true },
+        orderBy: { createdAt: "desc" },
+      },
+      feedback: {
+        include: { user: true },
         orderBy: { createdAt: "desc" },
       },
     },
@@ -130,12 +136,62 @@ export default async function EventDetailPage({ params }: { params: { id: string
         {formatINR(balance.distributedPaise)}.
       </p>
 
+      <details id="feedback" className="group rounded-xl border border-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 [&::-webkit-details-marker]:hidden">
+          <div>
+            <CardTitle>Feedback</CardTitle>
+            <CardDescription>Share observations, follow-ups, or decisions for this event. All event users can contribute.</CardDescription>
+          </div>
+          <span aria-hidden="true" className="text-2xl leading-none text-muted-foreground">
+            <span className="group-open:hidden">+</span>
+            <span className="hidden group-open:inline">-</span>
+          </span>
+        </summary>
+        <CardContent className="space-y-4">
+          {event.feedback.length === 0 ? (
+            <EmptyState title="No feedback yet" description="Record the first observation for this event." />
+          ) : (
+            <div className="space-y-3">
+              {event.feedback.map((item) => (
+                <div key={item.id} className="rounded-lg border border-border px-3 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{item.user.name ?? item.user.email ?? "User"}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(item.createdAt)}</p>
+                    </div>
+                    <Badge variant={item.completed ? "success" : "warning"}>{item.completed ? "Completed" : "Open"}</Badge>
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{item.message}</p>
+                  <form action={setFeedbackCompletedAction.bind(null, event.id, item.id)} className="mt-3">
+                    <input type="hidden" name="completed" value={String(!item.completed)} />
+                    <SubmitButton>
+                      {item.completed ? "Reopen feedback" : "Mark completed"}
+                    </SubmitButton>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
+          <form action={addFeedbackAction.bind(null, event.id)} className="space-y-3 rounded-lg bg-muted/40 p-4">
+            <Label htmlFor="feedback-message">Add feedback</Label>
+            <Textarea id="feedback-message" name="message" required placeholder="What should the committee know or follow up on?" />
+            <SubmitButton>Record feedback</SubmitButton>
+          </form>
+        </CardContent>
+      </details>
+
       <section className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Donations</CardTitle>
-            <CardDescription>Duplicate transaction references are rejected.</CardDescription>
-          </CardHeader>
+        <details className="group rounded-xl border border-border bg-card">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 [&::-webkit-details-marker]:hidden">
+            <div>
+              <CardTitle>Donations</CardTitle>
+              <CardDescription>Duplicate transaction references are rejected.</CardDescription>
+            </div>
+            <span aria-hidden="true" className="text-2xl leading-none text-muted-foreground">
+              <span className="group-open:hidden">+</span>
+              <span className="hidden group-open:inline">-</span>
+            </span>
+          </summary>
           <CardContent className="space-y-4">
             {event.donations.length === 0 ? (
               <EmptyState title="No donations" description="Record the first contribution for this event." />
@@ -222,13 +278,19 @@ export default async function EventDetailPage({ params }: { params: { id: string
               </form>
             ) : null}
           </CardContent>
-        </Card>
+        </details>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Expenses</CardTitle>
-            <CardDescription>Food, temple, transport, and other event costs.</CardDescription>
-          </CardHeader>
+        <details className="group rounded-xl border border-border bg-card">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 [&::-webkit-details-marker]:hidden">
+            <div>
+              <CardTitle>Expenses</CardTitle>
+              <CardDescription>Food, temple, transport, and other event costs.</CardDescription>
+            </div>
+            <span aria-hidden="true" className="text-2xl leading-none text-muted-foreground">
+              <span className="group-open:hidden">+</span>
+              <span className="hidden group-open:inline">-</span>
+            </span>
+          </summary>
           <CardContent className="space-y-4">
             {event.expenses.length === 0 ? (
               <EmptyState title="No expenses" description="Record a payment made from this event fund." />
@@ -304,17 +366,23 @@ export default async function EventDetailPage({ params }: { params: { id: string
               </form>
             ) : null}
           </CardContent>
-        </Card>
+        </details>
       </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Distributions</CardTitle>
-          <CardDescription>
-            Principal cannot exceed the current distributable balance. Due date defaults to one year
-            from start, with 30-day, 7-day, due-day, and overdue reminders.
-          </CardDescription>
-        </CardHeader>
+      <details className="group rounded-xl border border-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 [&::-webkit-details-marker]:hidden">
+          <div>
+            <CardTitle>Distributions</CardTitle>
+            <CardDescription>
+              Principal cannot exceed the current distributable balance. Due date defaults to one year
+              from start, with 30-day, 7-day, due-day, and overdue reminders.
+            </CardDescription>
+          </div>
+          <span aria-hidden="true" className="text-2xl leading-none text-muted-foreground">
+            <span className="group-open:hidden">+</span>
+            <span className="hidden group-open:inline">-</span>
+          </span>
+        </summary>
         <CardContent className="space-y-6">
           {event.distributions.length === 0 ? (
             <EmptyState title="No distributions" description="Support given from this event will appear here." />
@@ -463,7 +531,8 @@ export default async function EventDetailPage({ params }: { params: { id: string
             </form>
           ) : null}
         </CardContent>
-      </Card>
+      </details>
+
     </div>
   );
 }

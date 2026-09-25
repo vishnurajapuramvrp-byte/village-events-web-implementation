@@ -161,6 +161,34 @@ export async function deleteEventAction(eventId: string) {
   redirect("/events");
 }
 
+export async function addFeedbackAction(eventId: string, formData: FormData) {
+  const user = await requireUser();
+  const event = await prisma.event.findFirstOrThrow({ where: { id: eventId, villageId: user.villageId ?? undefined } });
+  const message = formString(formData, "message");
+  if (!message) throw new Error("Feedback is required.");
+  const feedback = await prisma.eventFeedback.create({
+    data: { eventId: event.id, userId: user.id, message },
+  });
+  await writeAudit({ userId: user.id, action: "CREATE", entityType: "EventFeedback", entityId: feedback.id, newValue: feedback });
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/api/reports/${eventId}/pdf`);
+}
+
+export async function setFeedbackCompletedAction(eventId: string, feedbackId: string, formData: FormData) {
+  const user = await requireUser();
+  const existing = await prisma.eventFeedback.findFirstOrThrow({
+    where: { id: feedbackId, eventId, event: { villageId: user.villageId ?? undefined } },
+  });
+  const completed = formData.get("completed") === "true";
+  const feedback = await prisma.eventFeedback.update({
+    where: { id: existing.id },
+    data: { completed },
+  });
+  await writeAudit({ userId: user.id, action: "UPDATE", entityType: "EventFeedback", entityId: feedback.id, oldValue: existing, newValue: feedback });
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/api/reports/${eventId}/pdf`);
+}
+
 export async function addDistributionAction(eventId: string, formData: FormData) {
   const user = await requirePermission("writeFinance");
   const startDate = new Date(formString(formData, "startDate"));

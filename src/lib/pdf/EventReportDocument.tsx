@@ -62,6 +62,12 @@ export type EventReportData = {
     repaidPaise: number;
     repaid: boolean;
   }[];
+  feedback: {
+    authorName: string;
+    message: string;
+    completed: boolean;
+    createdAt: Date;
+  }[];
 };
 
 export function EventReportDocument({ data }: { data: EventReportData }) {
@@ -157,6 +163,22 @@ export function EventReportDocument({ data }: { data: EventReportData }) {
               </Text>
             </View>
           ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.heading}>Feedback</Text>
+          {data.feedback.length === 0 ? (
+            <Text style={styles.muted}>No feedback recorded.</Text>
+          ) : (
+            data.feedback.map((item, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.col}>
+                  {item.authorName} · {formatDate(item.createdAt)} · {item.completed ? "Completed" : "Open"}
+                </Text>
+                <Text style={styles.colRight}>{item.message}</Text>
+              </View>
+            ))
+          )}
         </View>
 
         <View style={styles.sign}>

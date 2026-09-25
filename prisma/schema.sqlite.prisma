@@ -44,6 +44,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   auditLogs     AuditLog[]
+  eventFeedback EventFeedback[]
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -120,6 +121,7 @@ model Event {
   expenses            Expense[]
   distributions       Distribution[]
   documents           EventDocument[]
+  feedback            EventFeedback[]
 
   @@index([villageId])
   @@index([villageId, year])
@@ -139,6 +141,21 @@ model Donation {
   createdAt      DateTime @default(now())
 
   @@index([eventId])
+}
+
+model EventFeedback {
+  id          String   @id @default(cuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message     String
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([eventId, createdAt])
+  @@index([userId])
 }
 
 model Expense {

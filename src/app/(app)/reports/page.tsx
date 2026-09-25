@@ -13,6 +13,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: { ye
   const events = await prisma.event.findMany({
     where: { villageId: user.villageId! },
     orderBy: [{ year: "desc" }, { startDate: "desc" }],
+    include: { _count: { select: { feedback: true } } },
   });
   const years = Array.from(new Set([currentEventYear(), ...events.map((event) => event.year)])).sort((a, b) => b - a);
   const selectedYear =
@@ -74,6 +75,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: { ye
                           </CardDescription>
                         </div>
                         <div className="flex gap-2">
+                          <Button variant="outline" asChild>
+                            <Link href={`/events/${event.id}#feedback`}>Feedback ({event._count.feedback})</Link>
+                          </Button>
                           <Button variant="outline" asChild>
                             <Link href={`/events/${event.id}`}>Open event</Link>
                           </Button>

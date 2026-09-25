@@ -60,6 +60,7 @@ export default async function DashboardPage() {
   const events = await prisma.event.findMany({
     where: { villageId: user.villageId },
     orderBy: [{ year: "desc" }, { startDate: "desc" }],
+    include: { _count: { select: { feedback: true } } },
   });
 
   const balances = await Promise.all(events.map((event) => getEventLedgerTotals(event.id)));
@@ -186,6 +187,7 @@ export default async function DashboardPage() {
                     <p className="mt-1 text-xs text-muted-foreground">Pending for distribution</p>
                     <p className="text-sm">{formatINR(balances[index].distributableBalancePaise)}</p>
                     <div className="mt-2 flex gap-2 text-xs">
+                      <Link href={`/events/${event.id}#feedback`} className="text-primary hover:underline">Feedback ({event._count.feedback})</Link>
                       {can(user.role, "viewReminders") ? (
                         <Link href={`/reminders?eventId=${event.id}`} className="text-primary hover:underline">Reminders</Link>
                       ) : null}
@@ -232,10 +234,14 @@ export default async function DashboardPage() {
       </div>
 
       {recentAudit.length ? (
-        <Card>
-          <CardHeader>
+        <details className="group rounded-xl border border-border bg-card">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 [&::-webkit-details-marker]:hidden">
             <CardTitle>Recent audit activity</CardTitle>
-          </CardHeader>
+            <span aria-hidden="true" className="text-2xl leading-none text-muted-foreground">
+              <span className="group-open:hidden">+</span>
+              <span className="hidden group-open:inline">-</span>
+            </span>
+          </summary>
           <CardContent className="space-y-2 text-sm">
             {recentAudit.map((item) => (
               <div key={item.id} className="flex justify-between gap-4 border-b border-border py-2 last:border-0">
@@ -247,7 +253,7 @@ export default async function DashboardPage() {
               </div>
             ))}
           </CardContent>
-        </Card>
+        </details>
       ) : null}
     </div>
   );
