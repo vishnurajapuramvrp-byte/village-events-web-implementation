@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { InterestMethod } from "./enums";
 import { addYears, daysBetween, simpleInterestPaise } from "./interest";
-import { netDistributedPaise } from "./ledger";
+import { distributionSnapshot, netDistributedPaise, repaidInterestFromPaymentsPaise } from "./ledger";
 import { parseRupeeInput } from "./money";
 
 test("parses rupee input as integer paise", () => {
@@ -84,6 +84,41 @@ test("repayments return principal to the distributable balance", () => {
   );
   assert.equal(
     netDistributedPaise(30_000_00, [{ amountPaise: 35_000_00 }]),
+    0,
+  );
+});
+
+test("interest repaid is returned to available funds", () => {
+  assert.equal(
+    repaidInterestFromPaymentsPaise(30_000_00, [{ amountPaise: 35_000_00 }]),
+    5_000_00,
+  );
+  assert.equal(
+    repaidInterestFromPaymentsPaise(30_000_00, [{ amountPaise: 30_000_00 }]),
+    0,
+  );
+});
+
+test("distribution is marked repaid after principal and interest are covered", () => {
+  const snapshot = distributionSnapshot(
+    {
+      principalPaise: 30_000_00,
+      interestMethod: InterestMethod.FIXED_AMOUNT,
+      interestRateBps: 0,
+      fixedInterestPaise: 5_000_00,
+      startDate: new Date("2026-01-01"),
+      dueDate: new Date("2027-01-01"),
+      payments: [{ amountPaise: 35_000_00 }],
+    },
+    new Date("2026-06-01"),
+  );
+  assert.equal(snapshot.outstandingToDatePaise, 0);
+  assert.equal(snapshot.repaid, true);
+});
+
+test("distributed amount falls as repayments are recorded", () => {
+  assert.equal(
+    netDistributedPaise(30_000_00, [{ amountPaise: 30_000_00 }]),
     0,
   );
 });

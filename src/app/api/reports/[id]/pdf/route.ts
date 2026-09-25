@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/http-error";
 import { requirePermission } from "@/lib/session";
-import { getEventLedgerTotals } from "@/lib/ledger";
+import { distributionSnapshot, getEventLedgerTotals } from "@/lib/ledger";
 import { EventReportDocument } from "@/lib/pdf/EventReportDocument";
 
 export const runtime = "nodejs";
@@ -43,6 +43,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
             principalPaise: row.principalPaise,
             dueDate: row.dueDate,
             repaidPaise: row.payments.reduce((sum, payment) => sum + payment.amountPaise, 0),
+            repaid: distributionSnapshot(row).repaid,
           })),
         },
       }),

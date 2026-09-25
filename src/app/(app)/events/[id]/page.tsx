@@ -362,7 +362,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
                       ) : null}
                     </div>
                     <div className="text-sm">
-                      {snap.overdue ? <Badge variant="danger">Overdue</Badge> : null}
+                      {snap.repaid ? <Badge variant="success">Repaid</Badge> : snap.overdue ? <Badge variant="danger">Overdue</Badge> : null}
                       <p>Outstanding {formatINR(snap.outstandingToDatePaise)}</p>
                       <p className="text-muted-foreground">
                         Interest to date {formatINR(snap.interestToDatePaise)} · repaid{" "}

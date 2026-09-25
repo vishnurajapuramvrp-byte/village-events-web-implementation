@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Role } from "@/lib/enums";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { getEventLedgerTotals, distributionSnapshot } from "@/lib/ledger";
+import { getEventLedgerTotals, distributionSnapshot, netDistributedPaise } from "@/lib/ledger";
 import { formatINR } from "@/lib/money";
 import { can } from "@/lib/rbac";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,10 +40,22 @@ export default async function DashboardPage() {
     );
   }
 
-  const village = await prisma.village.findUniqueOrThrow({
+  const village = await prisma.village.findUnique({
     where: { id: user.villageId },
     include: { organization: true },
   });
+
+  if (!village) {
+    return (
+      <div>
+        <h1 className="text-2xl font-semibold">Village assignment needed</h1>
+        <p className="mt-2 text-muted-foreground">
+          This account is no longer linked to an available village. Sign out and sign in again,
+          or ask an admin to assign the account to a village.
+        </p>
+      </div>
+    );
+  }
 
   const events = await prisma.event.findMany({
     where: { villageId: user.villageId },
@@ -70,7 +82,10 @@ export default async function DashboardPage() {
       return [
         event.id,
         {
-          distributedPaise: distributions.reduce((sum, row) => sum + row.principalPaise, 0),
+          distributedPaise: distributions.reduce(
+            (sum, row) => sum + netDistributedPaise(row.principalPaise, row.payments),
+            0,
+          ),
         },
       ];
     }),

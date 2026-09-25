@@ -15,6 +15,7 @@ export type LedgerTotals = {
   expensesPaise: number;
   distributedPaise: number;
   eventGeneratedPaise: number;
+  repaidInterestPaise: number;
   totalDistributedPaise: number;
   totalAvailablePaise: number;
   availableBeforeDistributionPaise: number;
@@ -55,9 +56,26 @@ export async function getEventLedgerTotals(eventId: string): Promise<LedgerTotal
         : 0),
     0,
   );
+  const eventGeneratedDistributedPaise = event.distributions.reduce(
+    (sum, row) =>
+      sum +
+      (row.fundingSource === DistributionFundingSource.EVENT_GENERATED
+        ? netDistributedPaise(row.principalPaise, row.payments)
+        : 0),
+    0,
+  );
+  const repaidInterestPaise = event.distributions.reduce(
+    (sum, row) =>
+      sum +
+      (row.fundingSource === DistributionFundingSource.DONATION
+        ? repaidInterestFromPaymentsPaise(row.principalPaise, row.payments)
+        : 0),
+    0,
+  );
   const availableBeforeDistributionPaise =
     event.openingBalancePaise + donationsPaise - expensesPaise;
-  const distributableBalancePaise = availableBeforeDistributionPaise - distributedPaise;
+  const distributableBalancePaise =
+    availableBeforeDistributionPaise - distributedPaise + repaidInterestPaise;
 
   return {
     openingBalancePaise: event.openingBalancePaise,
@@ -65,8 +83,9 @@ export async function getEventLedgerTotals(eventId: string): Promise<LedgerTotal
     expensesPaise,
     distributedPaise,
     eventGeneratedPaise,
-    totalDistributedPaise: distributedPaise + eventGeneratedPaise,
-    totalAvailablePaise: availableBeforeDistributionPaise + eventGeneratedPaise,
+    repaidInterestPaise,
+    totalDistributedPaise: distributedPaise + eventGeneratedDistributedPaise,
+    totalAvailablePaise: availableBeforeDistributionPaise + eventGeneratedPaise + repaidInterestPaise,
     availableBeforeDistributionPaise,
     distributableBalancePaise,
   };
@@ -78,6 +97,14 @@ export function netDistributedPaise(
 ) {
   const repaidPaise = payments.reduce((sum, payment) => sum + payment.amountPaise, 0);
   return Math.max(0, principalPaise - repaidPaise);
+}
+
+export function repaidInterestFromPaymentsPaise(
+  principalPaise: number,
+  payments: { amountPaise: number }[],
+) {
+  const repaidPaise = payments.reduce((sum, payment) => sum + payment.amountPaise, 0);
+  return Math.max(0, repaidPaise - principalPaise);
 }
 
 export function distributionSnapshot(
@@ -107,7 +134,8 @@ export function distributionSnapshot(
     row.principalPaise + interestToDatePaise - repaidPaise,
   );
   const overdue = asOf > row.dueDate && outstandingToDatePaise > 0;
-  return { interestToDatePaise, repaidPaise, outstandingToDatePaise, overdue };
+  const repaid = outstandingToDatePaise === 0;
+  return { interestToDatePaise, repaidPaise, outstandingToDatePaise, overdue, repaid };
 }
 
 export async function createDonationRecord(input: {

@@ -69,7 +69,7 @@ export default async function MyLoanPage() {
                     <p className="text-lg font-semibold">{formatINR(snap.outstandingToDatePaise)}</p>
                   </div>
                 </div>
-                {snap.overdue ? <Badge variant="danger">Past due</Badge> : <Badge variant="success">On track</Badge>}
+                {snap.repaid ? <Badge variant="success">Repaid</Badge> : snap.overdue ? <Badge variant="danger">Past due</Badge> : <Badge variant="success">On track</Badge>}
                 <div>
                   <p className="mb-2 text-sm font-medium">Repayments</p>
                   {row.payments.length === 0 ? (
