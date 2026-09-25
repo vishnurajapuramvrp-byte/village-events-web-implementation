@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { ExcelImportForm } from "@/components/excel-import-form";
 import { deleteEventAction } from "@/app/actions";
 
@@ -61,33 +61,14 @@ export default async function EventsPage({
       {can(user.role, "writeEvents") ? <ExcelImportForm /> : null}
 
       {years.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {years.map((year) => (
-            <Link
-              key={year}
-              href={`/events?year=${year}`}
-              className={cn(
-                "rounded-full border px-3 py-1 text-sm",
-                selectedYear === year
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card hover:bg-muted",
-              )}
-            >
-              {year}
-            </Link>
-          ))}
-          <Link
-            href="/events?year=all"
-            className={cn(
-              "rounded-full border px-3 py-1 text-sm",
-              selectedYear === "all"
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card hover:bg-muted",
-            )}
-          >
-            All years
-          </Link>
-        </div>
+        <form method="get" className="flex items-center gap-3">
+          <label htmlFor="event-year" className="text-sm font-medium">Year</label>
+          <select id="event-year" name="year" defaultValue={selectedYear} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="all">All years</option>
+            {years.map((year) => <option key={year} value={year}>{year}</option>)}
+          </select>
+          <Button type="submit" variant="outline">Filter</Button>
+        </form>
       ) : null}
 
       {events.length === 0 ? (
