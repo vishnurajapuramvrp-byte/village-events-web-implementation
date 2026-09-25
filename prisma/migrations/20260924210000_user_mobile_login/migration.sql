@@ -1,0 +1,1 @@
+-- This migration was created as a placeholder; user mobile/password fields are applied by the later user_mobile_password migration.

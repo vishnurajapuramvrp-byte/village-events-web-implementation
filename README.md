@@ -37,6 +37,15 @@ Create Postgres (Vercel Storage → Postgres, [Neon](https://neon.tech), or [Sup
 
 If you only have one connection string, set **both** `DATABASE_URL` and `DIRECT_URL` to it.
 
+If a deployment reports Prisma `P3009` for a failed migration, resolve that failed attempt once against the production database, then redeploy:
+
+```bash
+npx prisma migrate resolve --rolled-back 20260925220000_reminder_15_days --schema prisma/schema.prisma
+npx prisma migrate deploy --schema prisma/schema.prisma
+```
+
+Run these commands only with production `DATABASE_URL` and `DIRECT_URL` loaded. The resolve command clears the failed migration marker; the deploy command then applies the corrected migration.
+
 ### 2. Google OAuth
 
 1. Google Cloud → APIs & Services → Credentials → OAuth 2.0 Client (Web application).
