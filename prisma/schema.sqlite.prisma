@@ -33,9 +33,11 @@ model User {
   id            String     @id @default(cuid())
   name          String?
   email         String?    @unique
+  mobile        String?    @unique
   emailVerified DateTime?
   image         String?
   passwordHash  String?
+  mustChangePassword Boolean @default(false)
   role          String     @default("VIEWER")
   villageId     String?
   village       Village?   @relation(fields: [villageId], references: [id], onDelete: SetNull)

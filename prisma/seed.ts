@@ -185,6 +185,7 @@ async function main() {
       reminders: {
         create: [
           { kind: ReminderKind.DAYS_30, scheduledFor: addDays(dueDate, -30) },
+          { kind: ReminderKind.DAYS_15, scheduledFor: addDays(dueDate, -15) },
           { kind: ReminderKind.DAYS_7, scheduledFor: addDays(dueDate, -7) },
           { kind: ReminderKind.DUE_DAY, scheduledFor: dueDate },
           { kind: ReminderKind.OVERDUE, scheduledFor: addDays(dueDate, 1) },
@@ -206,6 +207,7 @@ async function main() {
       reminders: {
         create: [
           { kind: ReminderKind.DAYS_30, scheduledFor: addDays(dueDate, -30) },
+          { kind: ReminderKind.DAYS_15, scheduledFor: addDays(dueDate, -15) },
           { kind: ReminderKind.DAYS_7, scheduledFor: addDays(dueDate, -7) },
           { kind: ReminderKind.DUE_DAY, scheduledFor: dueDate },
           { kind: ReminderKind.OVERDUE, scheduledFor: addDays(dueDate, 1) },

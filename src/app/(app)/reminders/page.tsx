@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/utils";
 
 const labels: Record<string, string> = {
   DAYS_30: "30 days before",
+  DAYS_15: "15 days before",
   DAYS_7: "7 days before",
   DUE_DAY: "Due day",
   OVERDUE: "Overdue",
@@ -56,7 +57,7 @@ export default async function RemindersPage({ searchParams }: { searchParams: { 
         </CardHeader>
         <CardContent>
           {reminders.length === 0 ? (
-            <EmptyState title="No reminders" description="Creating a distribution schedules the four-step ladder automatically." />
+            <EmptyState title="No reminders" description="Creating a distribution schedules the 30 / 15 / 7 / due / overdue ladder automatically." />
           ) : (
             <Table>
               <TableHeader>

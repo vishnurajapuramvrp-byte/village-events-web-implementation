@@ -12,6 +12,7 @@ export type SessionUser = {
   role: Role;
   villageId?: string | null;
   personId?: string | null;
+  mustChangePassword: boolean;
 };
 
 export async function getSessionUser(): Promise<SessionUser | null> {

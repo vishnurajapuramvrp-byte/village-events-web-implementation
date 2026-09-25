@@ -8,6 +8,7 @@ declare module "next-auth" {
       role: Role;
       villageId?: string | null;
       personId?: string | null;
+      mustChangePassword: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -17,5 +18,6 @@ declare module "next-auth/jwt" {
     role?: Role | string;
     villageId?: string | null;
     personId?: string | null;
+    mustChangePassword?: boolean;
   }
 }

@@ -7,7 +7,7 @@ export const siteConfig = {
   highlights: [
     "Balances always derived, never typed in",
     "Roles for admin, treasurer, committee, viewer",
-    "30 / 7 / due / overdue reminder ladder",
+    "30 / 15 / 7 / due / overdue reminder ladder",
     "Audit trail on every financial write",
   ],
 } as const;

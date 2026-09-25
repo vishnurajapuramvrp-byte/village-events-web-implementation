@@ -50,7 +50,7 @@ export default async function HomePage() {
               <p className="text-sm leading-6 text-muted-foreground">
                 {demoEnabled
                   ? "Use a demo account to explore the village event ledger."
-                  : "Sign in with Gmail to manage events, funds, and community support."}
+                  : "Sign in with your email or mobile number to manage events, funds, and community support."}
               </p>
             </div>
             <Card className="border-border/70 bg-card/70 shadow-none">

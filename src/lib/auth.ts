@@ -6,6 +6,7 @@ import Google from "next-auth/providers/google";
 import { Role } from "@/lib/enums";
 import { isDesignatedAdmin, isGmailAddress } from "@/lib/gmail";
 import { prisma } from "@/lib/prisma";
+import { normalizeMobile } from "@/lib/user-identity";
 
 if (!process.env.NEXTAUTH_URL) {
   process.env.NEXTAUTH_URL = process.env.VERCEL_URL
@@ -47,32 +48,36 @@ if (googleLoginEnabled()) {
   );
 }
 
-if (demoLoginEnabled()) {
-  providers.push(
-    Credentials({
-      name: "Demo login",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        const email = credentials?.email?.toLowerCase().trim();
-        const password = credentials?.password ?? "";
-        if (!email || !password) return null;
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user?.passwordHash) return null;
-        const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return null;
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-        };
-      },
-    }),
-  );
-}
+providers.push(
+  Credentials({
+    name: "Password login",
+    credentials: {
+      identifier: { label: "Email or mobile number", type: "text" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      const identifier = credentials?.identifier?.trim() ?? "";
+      const password = credentials?.password ?? "";
+      if (!identifier || !password) return null;
+      const email = identifier.toLowerCase();
+      const mobile = normalizeMobile(identifier);
+      const user = identifier.includes("@")
+        ? await prisma.user.findUnique({ where: { email } })
+        : mobile
+          ? await prisma.user.findUnique({ where: { mobile } })
+          : null;
+      if (!user?.passwordHash) return null;
+      const ok = await bcrypt.compare(password, user.passwordHash);
+      if (!ok) return null;
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+      };
+    },
+  }),
+);
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -115,6 +120,7 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role;
           token.villageId = dbUser.villageId;
           token.personId = dbUser.personId;
+          token.mustChangePassword = dbUser.mustChangePassword;
           token.name = dbUser.name;
           token.email = dbUser.email;
         }
@@ -127,6 +133,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = (token.role as Role) ?? Role.VIEWER;
         session.user.villageId = (token.villageId as string | null) ?? null;
         session.user.personId = (token.personId as string | null) ?? null;
+        session.user.mustChangePassword = Boolean(token.mustChangePassword);
       }
       return session;
     },

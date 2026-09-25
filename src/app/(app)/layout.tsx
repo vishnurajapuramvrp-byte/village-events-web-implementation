@@ -6,6 +6,7 @@ import { getSiteBranding } from "@/lib/site";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
   if (!user) redirect("/");
+  if (user.mustChangePassword) redirect("/change-password");
   const site = await getSiteBranding();
 
   return (

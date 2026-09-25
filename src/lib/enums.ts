@@ -44,6 +44,7 @@ export type DistributionFundingSource =
 
 export const ReminderKind = {
   DAYS_30: "DAYS_30",
+  DAYS_15: "DAYS_15",
   DAYS_7: "DAYS_7",
   DUE_DAY: "DUE_DAY",
   OVERDUE: "OVERDUE",

@@ -10,21 +10,39 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { CalendarDays, Coins, HandCoins } from "lucide-react";
+import { RecipientReminderPopup, type RecipientReminder } from "@/components/recipient-reminder-popup";
 
 export default async function DashboardPage() {
   const user = await requireUser();
+  const mappedDistributions = user.personId
+    ? await prisma.distribution.findMany({
+        where: { personId: user.personId },
+        include: { event: true, payments: true },
+        orderBy: { dueDate: "asc" },
+      })
+    : [];
+  const now = new Date();
+  const activeReminders: RecipientReminder[] = mappedDistributions.flatMap((distribution) => {
+    const snapshot = distributionSnapshot(distribution);
+    if (snapshot.repaid) return [];
+    const daysUntilDue = Math.ceil((distribution.dueDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+    return daysUntilDue <= 30
+      ? [{ id: distribution.id, eventName: distribution.event.name, dueDate: formatDate(distribution.dueDate), daysUntilDue }]
+      : [];
+  });
 
   if (user.role === Role.RECIPIENT) {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold">Your distribution</h1>
         <p className="text-muted-foreground">
-          Open your loan page to see the due date and any reminders. Amounts are shown only after
+          Open your loan page to see the due date and distribution details. Amounts are shown only after
           you sign in, not in reminder text.
         </p>
         <Button asChild>
           <Link href="/my-loan">View my distribution</Link>
         </Button>
+        <RecipientReminderPopup reminders={activeReminders} storageKey={`recipient-reminders:${user.personId ?? user.id}`} />
       </div>
     );
   }
@@ -102,6 +120,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <RecipientReminderPopup reminders={activeReminders} storageKey={`recipient-reminders:${user.personId ?? user.id}`} />
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">

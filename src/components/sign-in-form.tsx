@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const demos = [
-  { email: "admin@village.local", role: "Admin" },
-  { email: "treasurer@village.local", role: "Treasurer" },
-  { email: "committee@village.local", role: "Committee" },
-  { email: "viewer@village.local", role: "Viewer" },
-  { email: "recipient@village.local", role: "Recipient" },
+  { identifier: "admin@village.local", role: "Admin" },
+  { identifier: "treasurer@village.local", role: "Treasurer" },
+  { identifier: "committee@village.local", role: "Committee" },
+  { identifier: "viewer@village.local", role: "Viewer" },
+  { identifier: "recipient@village.local", role: "Recipient" },
 ];
 
 export function SignInForm({
@@ -23,18 +23,17 @@ export function SignInForm({
   demoLoginEnabled: boolean;
 }) {
   const router = useRouter();
-  const [email, setEmail] = useState(demoLoginEnabled ? "admin@village.local" : "");
+  const [identifier, setIdentifier] = useState(demoLoginEnabled ? "admin@village.local" : "");
   const [password, setPassword] = useState(demoLoginEnabled ? "demo1234" : "");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!demoLoginEnabled) return;
     setPending(true);
     setError("");
     const result = await signIn("credentials", {
-      email,
+      identifier,
       password,
       redirect: false,
     });
@@ -43,6 +42,9 @@ export function SignInForm({
       setError("Check the email and password, then try again.");
       return;
     }
+    for (const key of Object.keys(window.sessionStorage)) {
+      if (key.startsWith("recipient-reminders:")) window.sessionStorage.removeItem(key);
+    }
     router.push("/dashboard");
     router.refresh();
   }
@@ -50,20 +52,42 @@ export function SignInForm({
   return (
     <div className="space-y-5">
       {googleEnabled ? (
-        <Button
-          className="w-full"
-          variant={demoLoginEnabled ? "outline" : "default"}
-          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        >
-          Continue with Gmail
-        </Button>
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Gmail login</p>
+            <p className="text-xs text-muted-foreground">For users with an approved Gmail account.</p>
+          </div>
+          <Button
+            className="w-full"
+            variant={demoLoginEnabled ? "outline" : "default"}
+            onClick={async () => {
+              const result = await signIn("google", { callbackUrl: "/dashboard", redirect: false });
+              if (!result?.error) {
+                for (const key of Object.keys(window.sessionStorage)) {
+                  if (key.startsWith("recipient-reminders:")) window.sessionStorage.removeItem(key);
+                }
+                router.push("/dashboard");
+              }
+            }}
+          >
+            Continue with Gmail
+          </Button>
+        </div>
       ) : null}
 
-      {demoLoginEnabled ? (
+      <div className={googleEnabled ? "space-y-3 border-t border-border pt-5" : "space-y-3"}>
+        <div>
+          <p className="text-sm font-semibold text-foreground">Administrator-provided login</p>
+          <p className="text-xs text-muted-foreground">Use the email or mobile number and temporary password given by your administrator.</p>
+        </div>
+        <p className="text-sm leading-6 text-muted-foreground">
+          <strong className="font-semibold text-foreground">Login Guideline:</strong> On your first sign-in, you’ll be prompted to create a new password. Contact your administrator if you don’t have an account or face issues.
+        </p>
+
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Label htmlFor="identifier">Email or mobile number</Label>
+            <Input id="identifier" type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -75,18 +99,14 @@ export function SignInForm({
               required
             />
           </div>
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Signing in…" : "Sign in"}
-          </Button>
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        <Button type="submit" className="w-full" disabled={pending}>
+          {pending ? "Signing in…" : "Sign in"}
+        </Button>
         </form>
-      ) : null}
+      </div>
 
-      {!googleEnabled && !demoLoginEnabled ? (
-        <p className="text-sm text-muted-foreground">
-          Authentication is not configured. Production needs Google OAuth. Locally set ENABLE_DEMO_LOGIN=true.
-        </p>
-      ) : null}
+      {!googleEnabled && !demoLoginEnabled ? <p className="text-sm text-muted-foreground">Use the login details provided by an administrator.</p> : null}
 
       {demoLoginEnabled ? (
         <div>
@@ -94,15 +114,15 @@ export function SignInForm({
           <div className="grid gap-2">
             {demos.map((item) => (
               <button
-                key={item.email}
+                key={item.identifier}
                 type="button"
                 onClick={() => {
-                  setEmail(item.email);
+                  setIdentifier(item.identifier);
                   setPassword("demo1234");
                 }}
                 className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3 py-2 text-left text-sm hover:bg-muted"
               >
-                <span>{item.email}</span>
+                <span>{item.identifier}</span>
                 <span className="text-xs text-muted-foreground">{item.role}</span>
               </button>
             ))}

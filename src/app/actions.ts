@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import bcrypt from "bcryptjs";
 import { DistributionFundingSource, EventStatus, InterestMethod, PaymentMethod, Role } from "@/lib/enums";
 import { prisma } from "@/lib/prisma";
 import { requirePermission, requireUser } from "@/lib/session";
@@ -20,6 +21,7 @@ import {
 } from "@/lib/ledger";
 import { addYears } from "@/lib/interest";
 import { parseEventYear, yearFromDate } from "@/lib/event-year";
+import { normalizeMobile } from "@/lib/user-identity";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -320,6 +322,106 @@ export async function updateUserRoleAction(userId: string, formData: FormData) {
     newValue: { role: updated.role },
   });
   revalidatePath("/settings/users");
+}
+
+export async function deleteUserAction(userId: string) {
+  const actor = await requirePermission("manageUsers");
+  if (userId === actor.id) throw new Error("You cannot delete your own account.");
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  if (user.role === Role.ADMIN) {
+    const adminCount = await prisma.user.count({ where: { role: Role.ADMIN } });
+    if (adminCount <= 1) throw new Error("Keep at least one Admin account.");
+  }
+
+  await prisma.$transaction(async (transaction) => {
+    await transaction.auditLog.create({
+      data: {
+        userId: actor.id,
+        action: "DELETE",
+        entityType: "User",
+        entityId: user.id,
+        oldValue: JSON.stringify({ name: user.name, email: user.email, mobile: user.mobile, role: user.role, personId: user.personId }),
+      },
+    });
+    await transaction.user.delete({ where: { id: user.id } });
+  });
+  revalidatePath("/settings/users");
+}
+
+export async function createUserAction(formData: FormData) {
+  const actor = await requirePermission("manageUsers");
+  if (!actor.villageId) throw new Error("Your account is not assigned to a village.");
+
+  const name = formString(formData, "name");
+  const email = formString(formData, "email").toLowerCase() || null;
+  const mobileInput = formString(formData, "mobile");
+  const mobile = mobileInput ? normalizeMobile(mobileInput) : null;
+  const password = formString(formData, "password");
+  const role = (formString(formData, "role") || Role.VIEWER) as Role;
+  let personId = formString(formData, "personId") || null;
+
+  if (!name) throw new Error("Name is required.");
+  if (!email && !mobile) throw new Error("Enter an email address or mobile number.");
+  if (mobileInput && !mobile) throw new Error("Enter a valid mobile number.");
+  if (password.length < 8) throw new Error("Temporary password must be at least 8 characters.");
+  if (!Object.values(Role).includes(role)) throw new Error("Choose a valid role.");
+  if (personId) {
+    const person = await prisma.person.findFirst({ where: { id: personId, villageId: actor.villageId } });
+    if (!person) throw new Error("Choose a person from this village.");
+  } else if (mobile) {
+    const people = await prisma.person.findMany({
+      where: { villageId: actor.villageId, phone: { not: null }, users: { none: {} } },
+      select: { id: true, phone: true },
+    });
+    personId = people.find((person) => normalizeMobile(person.phone ?? "") === mobile)?.id ?? null;
+  }
+
+  const existing = await prisma.user.findFirst({
+    where: {
+      OR: [
+        ...(email ? [{ email }] : []),
+        ...(mobile ? [{ mobile }] : []),
+      ],
+    },
+  });
+  if (existing) throw new Error("That email or mobile number is already in use.");
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      mobile,
+      passwordHash: await bcrypt.hash(password, 10),
+      mustChangePassword: true,
+      role,
+      villageId: actor.villageId,
+      personId,
+    },
+  });
+  await writeAudit({
+    userId: actor.id,
+    action: "CREATE",
+    entityType: "User",
+    entityId: user.id,
+    newValue: { name, email, mobile, role, personId },
+  });
+  revalidatePath("/settings/users");
+}
+
+export async function changePasswordAction(formData: FormData) {
+  const user = await requireUser();
+  const password = formString(formData, "password");
+  const confirmation = formString(formData, "confirmation");
+  if (password.length < 8) throw new Error("Password must be at least 8 characters.");
+  if (password !== confirmation) throw new Error("Passwords do not match.");
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await bcrypt.hash(password, 10), mustChangePassword: false },
+  });
+  await writeAudit({ userId: user.id, action: "CHANGE_PASSWORD", entityType: "User", entityId: user.id });
+  redirect("/dashboard");
 }
 
 export async function requireSignedInHome() {
