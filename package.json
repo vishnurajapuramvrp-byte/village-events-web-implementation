@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",
-    "build": "node scripts/prisma-generate.mjs && node scripts/prisma-migrate-deploy.mjs && next build",
+    "build": "node scripts/check-production-env.mjs && node scripts/prisma-generate.mjs && node scripts/prisma-migrate-deploy.mjs && next build",
     "start": "next start -H 127.0.0.1 -p 43123",
     "lint": "next lint",
-    "test": "tsx --test src/lib/finance.test.ts src/lib/http-error.test.ts src/lib/auth.test.ts",
+    "test": "tsx --test src/lib/finance.test.ts src/lib/http-error.test.ts src/lib/auth.test.ts src/lib/i18n.test.ts",
     "db:push": "node scripts/prisma-db-push.mjs",
     "db:seed": "tsx prisma/seed-prod.ts",
     "db:seed:demo": "tsx prisma/seed.ts",

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { CalendarDays, Coins, HandCoins } from "lucide-react";
 import { RecipientReminderPopup, type RecipientReminder } from "@/components/recipient-reminder-popup";
+import { LocalizedContent } from "@/components/providers";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -33,7 +34,8 @@ export default async function DashboardPage() {
 
   if (user.role === Role.RECIPIENT) {
     return (
-      <div className="space-y-4">
+      <LocalizedContent>
+        <div className="space-y-4">
         <h1 className="text-2xl font-semibold">Your distribution</h1>
         <p className="text-muted-foreground">
           Open your loan page to see the due date and distribution details. Amounts are shown only after
@@ -43,18 +45,21 @@ export default async function DashboardPage() {
           <Link href="/my-loan">View my distribution</Link>
         </Button>
         <RecipientReminderPopup reminders={activeReminders} storageKey={`recipient-reminders:${user.personId ?? user.id}`} />
-      </div>
+        </div>
+      </LocalizedContent>
     );
   }
 
   if (!user.villageId) {
     return (
-      <div>
+      <LocalizedContent>
+        <div>
         <h1 className="text-2xl font-semibold">Village assignment needed</h1>
         <p className="mt-2 text-muted-foreground">
           An admin still needs to attach this account to a village before the ledger will appear.
         </p>
-      </div>
+        </div>
+      </LocalizedContent>
     );
   }
 
@@ -65,13 +70,15 @@ export default async function DashboardPage() {
 
   if (!village) {
     return (
-      <div>
+      <LocalizedContent>
+        <div>
         <h1 className="text-2xl font-semibold">Village assignment needed</h1>
         <p className="mt-2 text-muted-foreground">
           This account is no longer linked to an available village. Sign out and sign in again,
           or ask an admin to assign the account to a village.
         </p>
-      </div>
+        </div>
+      </LocalizedContent>
     );
   }
 
@@ -119,7 +126,8 @@ export default async function DashboardPage() {
     : [];
 
   return (
-    <div className="space-y-8">
+    <LocalizedContent>
+      <div className="space-y-8">
       <RecipientReminderPopup reminders={activeReminders} storageKey={`recipient-reminders:${user.personId ?? user.id}`} />
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
@@ -274,6 +282,7 @@ export default async function DashboardPage() {
           </CardContent>
         </details>
       ) : null}
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

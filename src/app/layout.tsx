@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
+import { cookies } from "next/headers";
 import { Providers } from "@/components/providers";
 import { getSiteBranding } from "@/lib/site";
+import type { Locale } from "@/lib/i18n";
 import "./globals.css";
 
 const font = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
@@ -18,11 +20,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieLocale = cookies().get("app-locale")?.value;
+  const locale: Locale = cookieLocale === "te" ? "te" : "en";
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={`${font.className} ${font.variable}`}>
-        <Providers>{children}</Providers>
+        <Providers initialLocale={locale}>{children}</Providers>
       </body>
     </html>
   );

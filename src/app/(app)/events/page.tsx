@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 import { ExcelImportForm } from "@/components/excel-import-form";
+import { LocalizedContent } from "@/components/providers";
 import { deleteEventAction } from "@/app/actions";
 
 export default async function EventsPage({
@@ -36,13 +37,14 @@ export default async function EventsPage({
   const visible = selectedYear === "all" ? events : events.filter((event) => event.year === selectedYear);
 
   return (
-    <div className="space-y-6">
+    <LocalizedContent>
+      <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Programme archive</p>
           <h1 className="display-type mt-2 text-4xl">Events</h1>
           <p className="text-sm text-muted-foreground">Festival funds grouped by programme year.</p>
-        </div>
+          </div>
         {can(user.role, "writeEvents") ? (
           <Button asChild>
             <Link href="/events/new">New event</Link>
@@ -56,7 +58,7 @@ export default async function EventsPage({
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/75">A record of care</p>
           <p className="display-type text-2xl">Every programme has a story.</p>
           <p className="text-sm text-white/80">Open an event to follow its offerings, costs, and support.</p>
-        </div>
+          </div>
       </div>
 
       {can(user.role, "writeEvents") ? <ExcelImportForm /> : null}
@@ -169,6 +171,7 @@ export default async function EventsPage({
           </div>
         </>
       )}
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

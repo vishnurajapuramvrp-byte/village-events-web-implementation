@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmptyState } from "@/components/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
+import { LocalizedContent } from "@/components/providers";
 
 const labels: Record<string, string> = {
   DAYS_30: "30 days before",
@@ -34,14 +35,15 @@ export default async function RemindersPage({ searchParams }: { searchParams: { 
   });
 
   return (
-    <div className="space-y-6">
+    <LocalizedContent>
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">Reminders</h1>
         <p className="text-muted-foreground text-sm">
           Reminder text stays generic on purpose: phones may be shared. Delivery is logged here;
           plug in email, web push, or WhatsApp later.
         </p>
-      </div>
+        </div>
       <form method="get" className="flex items-center gap-3">
         <label htmlFor="reminder-event" className="text-sm font-medium">Event</label>
         <select id="reminder-event" name="eventId" defaultValue={selectedEventId} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
@@ -90,6 +92,7 @@ export default async function RemindersPage({ searchParams }: { searchParams: { 
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

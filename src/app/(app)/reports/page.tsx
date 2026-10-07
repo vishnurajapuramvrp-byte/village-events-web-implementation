@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { currentEventYear } from "@/lib/event-year";
+import { LocalizedContent } from "@/components/providers";
 
 export default async function ReportsPage({ searchParams }: { searchParams: { year?: string; eventId?: string } }) {
   const user = await requirePermission("viewFinance");
@@ -31,14 +32,15 @@ export default async function ReportsPage({ searchParams }: { searchParams: { ye
   const visibleYears = Array.from(new Set(visibleEvents.map((event) => event.year)));
 
   return (
-    <div className="space-y-6">
+    <LocalizedContent>
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">Reports</h1>
         <p className="text-sm text-muted-foreground">
           Each PDF includes income, expenses, distributions, a computed balance, and a signature
           section. Please verify against original receipts.
         </p>
-      </div>
+        </div>
       <form method="get" className="flex flex-wrap items-center gap-3">
         <label htmlFor="report-year" className="text-sm font-medium">Year</label>
         <select id="report-year" name="year" defaultValue={selectedYear} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
@@ -91,11 +93,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: { ye
                       </CardContent>
                     </Card>
                   ))}
-              </div>
+                </div>
             </section>
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

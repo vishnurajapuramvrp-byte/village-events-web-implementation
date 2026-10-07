@@ -6,6 +6,8 @@ import { demoLoginEnabled, googleLoginEnabled } from "@/lib/auth";
 import { getSiteBranding } from "@/lib/site";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Flower2, ShieldCheck } from "lucide-react";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { LocalizedContent } from "@/components/providers";
 
 export default async function HomePage() {
   const user = await getSessionUser();
@@ -13,7 +15,8 @@ export default async function HomePage() {
   const [googleEnabled, demoEnabled, site] = [googleLoginEnabled(), demoLoginEnabled(), await getSiteBranding()];
 
   return (
-    <main className="min-h-screen p-3 sm:p-5 lg:p-8">
+    <LocalizedContent>
+      <main className="min-h-screen p-3 sm:p-5 lg:p-8">
       <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-7xl overflow-hidden rounded-[1.5rem] bg-card shadow-2xl shadow-primary/10 lg:grid-cols-[1.15fr_0.85fr]">
         <section className="relative flex min-h-[32rem] flex-col justify-between overflow-hidden bg-accent p-7 text-accent-foreground sm:p-10 lg:p-14">
           <div className="festival-photo festival-photo--ganesha absolute inset-0 opacity-75" aria-label="Festival deity decorated with flowers" role="img" />
@@ -28,7 +31,10 @@ export default async function HomePage() {
                 <p className="text-xs text-white/70">{site.tagline}</p>
               </div>
             </div>
-            <Flower2 className="h-7 w-7 text-primary-foreground/80" />
+            <div className="flex items-center gap-4">
+              <LanguageSwitcher />
+              <Flower2 className="h-7 w-7 text-primary-foreground/80" />
+            </div>
           </div>
           <div className="relative z-10 max-w-xl space-y-5">
             <div className="rangoli-rule h-1 w-20 rounded-full" />
@@ -66,6 +72,7 @@ export default async function HomePage() {
           </div>
         </section>
       </div>
-    </main>
+      </main>
+    </LocalizedContent>
   );
 }

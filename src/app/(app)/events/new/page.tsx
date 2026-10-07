@@ -9,19 +9,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/submit-button";
 import { YearSelect } from "@/components/year-select";
 import Link from "next/link";
+import { LocalizedContent } from "@/components/providers";
 
 export default async function NewEventPage() {
   await requirePermission("writeEvents");
   const year = currentEventYear();
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <LocalizedContent>
+      <div className="mx-auto max-w-xl space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">New event</h1>
         <p className="text-sm text-muted-foreground">
           Choose the programme year first so later reports and maintenance stay grouped.
         </p>
-      </div>
+        </div>
       <Card>
         <CardHeader>
           <CardTitle>Event details</CardTitle>
@@ -43,7 +45,7 @@ export default async function NewEventPage() {
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" name="description" placeholder="What this collection is for" />
-            </div>
+              </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Start date</Label>
@@ -67,6 +69,7 @@ export default async function NewEventPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

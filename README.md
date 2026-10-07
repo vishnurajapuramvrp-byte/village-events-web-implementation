@@ -57,12 +57,15 @@ Run these commands only with production `DATABASE_URL` and `DIRECT_URL` loaded. 
 1. Google Cloud → APIs & Services → Credentials → OAuth 2.0 Client (Web application).
 2. Add these exact Authorized redirect URIs:
 	- Local: `http://localhost:3000/api/auth/callback/google`
-	- Production: `https://vrp-events.vercel.app/api/auth/callback/google` (also add any extra `*.vercel.app` URL).
-3. Put the client ID and secret in Vercel env vars. Set `ADMIN_EMAIL` to the one Gmail that should be Admin. Other Gmail users sign in as Viewer until an Admin assigns a role.
+	- Production: `https://YOUR-PRODUCTION-DOMAIN/api/auth/callback/google`
+3. Set `NEXTAUTH_URL` to the canonical production domain (for example, `https://vrp-events.vercel.app`) and put the client ID and secret in Vercel production env vars. Google requires an exact callback URL, so wildcards do not enable preview login. Register an individual preview callback or use a separate OAuth client if previews need Google login.
+4. Set `ADMIN_EMAIL` to the one Gmail that should be Admin. Other Gmail users sign in as Viewer until an Admin assigns a role.
 
 ### 3. Import the GitHub repo
 
-Vercel → Add New → Project → import this repository. Framework preset: Next.js. Node.js **20.x** (from `package.json` / `.nvmrc`). Build command stays `npm run build`.
+Vercel → Add New → Project → import this repository. Framework preset: Next.js. Node.js **24.x** (from `package.json` / `.nvmrc`). Build command stays `npm run build`.
+
+Vercel preview builds skip database migrations. Configure Preview with a separate staging database and preview-only auth secrets if previews need authenticated features; never point Preview at the production database. Production deployments require both pooled `DATABASE_URL` and direct `DIRECT_URL`; migrations run before the production build.
 
 ### 4. Environment variables (Production)
 
@@ -72,7 +75,7 @@ Generate secrets with `openssl rand -base64 32`.
 |---|---|---|
 | `DATABASE_URL` | Yes | Pooled Postgres URL |
 | `DIRECT_URL` | Yes | Direct Postgres URL (migrations) |
-| `NEXTAUTH_URL` | No | Automatically uses `http://localhost:3000` locally or the Vercel deployment URL |
+| `NEXTAUTH_URL` | Yes | Canonical HTTPS production URL; use the same host registered for Google OAuth |
 | `NEXTAUTH_SECRET` | Yes | Random 32+ byte secret |
 | `GOOGLE_CLIENT_ID` | Yes in production | Google OAuth client (Gmail sign-in) |
 | `GOOGLE_CLIENT_SECRET` | Yes in production | Google OAuth secret |
@@ -83,6 +86,8 @@ Generate secrets with `openssl rand -base64 32`.
 | `VILLAGE_DESCRIPTION` | No | Village description under the headline |
 | `CRON_SECRET` | Yes | Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` |
 | `ENABLE_DEMO_LOGIN` | No | Default off in production; Gmail-only when unset |
+
+The production build checks for the required variables above, valid PostgreSQL URLs, a canonical HTTPS `NEXTAUTH_URL`, sufficiently long separate auth and cron secrets, a Gmail admin address, and demo login disabled. CI verifies lint, types, tests, and a local SQLite build on Node 24.
 
 Optional: `ORG_NAME`, `VILLAGE_NAME`, `VILLAGE_DISTRICT`, `VILLAGE_STATE` for the production seed.
 
@@ -101,7 +106,7 @@ Or from any machine with `DATABASE_URL` and `DIRECT_URL` set to production:
 npm run db:seed:prod
 ```
 
-This creates the organization and village only (no demo users, no wipes). Sign in with a Google account listed in `ADMIN_EMAILS`. That user is promoted to Admin and attached to the village.
+This creates the organization and village only (no demo users, no wipes). Sign in with the Gmail configured as `ADMIN_EMAIL` (or listed in `ADMIN_EMAILS`). That user is promoted to Admin and attached to the village.
 
 ### 6. Confirm cron
 

@@ -18,6 +18,9 @@ import { Role } from "@/lib/enums";
 import { can, roleLabel } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { LocalizedContent, useLocale } from "@/components/providers";
+import { translate } from "@/lib/i18n";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "viewFinance" as const },
@@ -45,6 +48,8 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { locale } = useLocale();
+  const t = (text: string) => translate(text, locale);
   const isRecipient = user.role === Role.RECIPIENT;
   const nav = isRecipient
     ? [{ href: "/my-loan", label: "My distribution", icon: HandCoins }]
@@ -77,28 +82,36 @@ export function AppShell({
                 )}
               >
                 <Icon className="h-4 w-4" />
-                {item.label}
+                {t(item.label)}
               </Link>
             );
           })}
         </nav>
+        <div className="hidden px-5 pb-4 lg:block">
+          <LanguageSwitcher />
+        </div>
         <div className="hidden border-t border-white/10 px-5 py-4 lg:block">
           <p className="truncate text-sm font-medium">{user.name ?? user.email}</p>
-          <p className="text-xs text-white/55">{roleLabel(user.role)}</p>
+          <p className="text-xs text-white/55">{t(roleLabel(user.role))}</p>
           <Button variant="ghost" size="sm" className="mt-3 w-full justify-start px-2" onClick={() => signOut({ callbackUrl: "/" })}>
             <LogOut className="h-4 w-4" />
-            Sign out
+            {t("Sign out")}
           </Button>
         </div>
       </aside>
       <div className="flex min-h-screen flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card/80 px-4 py-3 backdrop-blur lg:hidden">
-          <p className="text-sm font-medium">{user.name ?? "Signed in"}</p>
-          <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
-            Sign out
-          </Button>
+          <p className="text-sm font-medium">{user.name ?? t("Signed in")}</p>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
+              {t("Sign out")}
+            </Button>
+          </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          <LocalizedContent>{children}</LocalizedContent>
+        </main>
       </div>
     </div>
   );

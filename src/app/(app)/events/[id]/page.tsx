@@ -32,6 +32,7 @@ import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/utils";
 import { DistributionFundingSource } from "@/lib/enums";
 import { canViewPhone, maskPhone } from "@/lib/privacy";
+import { LocalizedContent } from "@/components/providers";
 
 function dateValue(value: Date) {
   return value.toISOString().slice(0, 10);
@@ -60,7 +61,8 @@ export default async function EventDetailPage({ params }: { params: { id: string
   const canWrite = can(user.role, "writeFinance") && event.status !== "CLOSED";
 
   return (
-    <div className="space-y-8">
+    <LocalizedContent>
+      <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">
@@ -70,7 +72,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
           </p>
           <h1 className="text-3xl font-semibold">{event.name}</h1>
           <p className="mt-1 max-w-2xl text-muted-foreground">{event.description}</p>
-        </div>
+          </div>
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary">{event.year}</Badge>
           <Badge variant={event.status === "CLOSED" ? "secondary" : "success"}>{event.status}</Badge>
@@ -96,7 +98,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
               </form>
             </>
           ) : null}
-        </div>
+          </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -535,6 +537,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
         </CardContent>
       </details>
 
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

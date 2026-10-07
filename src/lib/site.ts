@@ -18,16 +18,11 @@ export type SiteBranding = {
 };
 
 export async function getSiteBranding(): Promise<SiteBranding> {
-  let villageNameFromDb = "";
-  try {
-    const village = await prisma.village.findFirst({
-      orderBy: { createdAt: "asc" },
-      select: { name: true },
-    });
-    villageNameFromDb = village?.name ?? "";
-  } catch {
-    villageNameFromDb = "";
-  }
+  const village = await prisma.village.findFirst({
+    orderBy: { createdAt: "asc" },
+    select: { name: true },
+  });
+  const villageNameFromDb = village?.name ?? "";
 
   const villageName = firstText(process.env.VILLAGE_NAME, siteConfig.villageName, villageNameFromDb) || "Village";
   const headline =

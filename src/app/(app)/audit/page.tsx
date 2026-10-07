@@ -3,6 +3,7 @@ import { requirePermission } from "@/lib/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/utils";
+import { LocalizedContent } from "@/components/providers";
 
 export default async function AuditPage() {
   await requirePermission("viewAudit");
@@ -13,11 +14,12 @@ export default async function AuditPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <LocalizedContent>
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">Audit log</h1>
         <p className="text-sm text-muted-foreground">Who changed what, and when, on financial records.</p>
-      </div>
+        </div>
       {logs.length === 0 ? (
         <EmptyState title="No activity yet" description="Writes to events, donations, expenses, and distributions are logged." />
       ) : (
@@ -44,8 +46,9 @@ export default async function AuditPage() {
               )}
             </Card>
           ))}
-        </div>
+          </div>
       )}
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

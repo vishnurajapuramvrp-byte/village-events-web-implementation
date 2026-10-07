@@ -3,6 +3,7 @@ import { changePasswordAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSessionUser } from "@/lib/session";
+import { LocalizedContent } from "@/components/providers";
 
 export default async function ChangePasswordPage() {
   const user = await getSessionUser();
@@ -10,7 +11,8 @@ export default async function ChangePasswordPage() {
   if (!user.mustChangePassword) redirect("/dashboard");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
+    <LocalizedContent>
+      <main className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Set your password</CardTitle>
@@ -24,6 +26,7 @@ export default async function ChangePasswordPage() {
           </form>
         </CardContent>
       </Card>
-    </main>
+      </main>
+    </LocalizedContent>
   );
 }

@@ -29,16 +29,22 @@ Vercel Cron -> /api/cron/reminders -> reminder scheduler/logging -> Prisma
 | Persistence | `prisma/schema.prisma`, `prisma/schema.sqlite.prisma`, `prisma/migrations/` | PostgreSQL/local SQLite data models and migrations |
 | Deployment scripts | `scripts/`, `vercel.json` | Prisma schema selection/generation/migrations and scheduled cron |
 
-## 3. Runtime and configuration
+## 3. Language support
 
-Use Node.js 20.x. The canonical local setup and production Vercel procedure are in the repository README. Configure secrets in the deployment environment; do not commit `.env` files.
+The interface supports English (`en`) and Telugu (`te`). The language selector is available on the sign-in page and in the authenticated app shell. The selected language is stored in the `app-locale` browser cookie for one year and is used to set the document language for accessibility and Telugu font fallback.
+
+Translations are maintained in `src/lib/i18n.ts`. Server-rendered route content is placed inside `LocalizedContent`; client components with their own interface text use the same translation helper. Translation is exact-copy based, so user-provided text that does not exactly match a UI phrase remains unchanged.
+
+## 4. Runtime and configuration
+
+Use Node.js 24.x. The canonical local setup and production Vercel procedure are in the repository README. Configure secrets in the deployment environment; do not commit `.env` files. Vercel preview builds skip migrations; production builds require both pooled `DATABASE_URL` and direct `DIRECT_URL` and apply pending migrations before building.
 
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | Prisma database connection; pooled PostgreSQL connection in production |
 | `DIRECT_URL` | Direct PostgreSQL connection for migrations |
 | `NEXTAUTH_SECRET` | Signs/encrypts NextAuth session tokens |
-| `NEXTAUTH_URL` | Public application URL; inferred from Vercel or local host if omitted |
+| `NEXTAUTH_URL` | Canonical HTTPS production URL registered for Google OAuth; local development defaults to localhost |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Enable Gmail Google OAuth when both are set |
 | `ADMIN_EMAIL` | Designated initial Google Admin address |
 | `ADMIN_EMAILS` | Additional designated Admin addresses, comma-separated |
@@ -49,7 +55,7 @@ Use Node.js 20.x. The canonical local setup and production Vercel procedure are 
 
 Google sign-in is enabled only when both Google credentials exist, and the callback permits Gmail addresses. Password credentials are available for provisioned accounts; production demo access should remain disabled. The deployment runbook in `README.md` includes database setup, OAuth callback URLs, seeding, and cron configuration.
 
-## 4. Data model
+## 5. Data model
 
 Primary schema: `prisma/schema.prisma`. IDs are Prisma-generated CUID strings unless otherwise noted.
 
@@ -72,7 +78,7 @@ Primary schema: `prisma/schema.prisma`. IDs are Prisma-generated CUID strings un
 
 Financial amounts are stored as integer paise. The user interface accepts rupees and conversion is centralized in `src/lib/money.ts`. Roles, event status, payment method, interest method, funding source, and reminder kind are string-backed constants in `src/lib/enums.ts`.
 
-## 5. Authorization and privacy
+## 6. Authorization and privacy
 
 `requireUser` obtains the NextAuth server session. `requirePermission` checks the role matrix and, except for user management, requires a village assignment. Route handlers and server actions call these guards before their protected work. Event and people data queries are scoped to the active user's village.
 
@@ -88,7 +94,7 @@ Financial amounts are stored as integer paise. The user interface accepts rupees
 
 Recipient pages query only records linked through the user's `personId`. Contact numbers are masked according to `src/lib/privacy.ts`. Reminder text is generic and does not contain names or amounts. Passwords are stored as bcrypt hashes. Security response headers are configured in `vercel.json`.
 
-## 6. Ledger and interest calculations
+## 7. Ledger and interest calculations
 
 `getEventLedgerTotals` derives event totals from current donation, expense, distribution, and payment rows; no editable balance is stored.
 
@@ -105,7 +111,7 @@ totalAvailable = availableBeforeDistribution + eventGenerated + repaidInterest
 
 Interest is rounded to the nearest paise and does not compound. Annual simple and Custom use `principal × rate × days / 365`. Monthly simple is implemented as `principal × annual rate × days / 360`. Fixed amount returns the configured fixed interest. Outstanding is `max(0, principal + interest-to-date - repayments)`. The UI/API permit repayment entries larger than current outstanding; the ledger treats amounts over principal as repaid interest for donation-funded balance calculations.
 
-## 7. Application routes
+## 8. Application routes
 
 | Page | Purpose |
 |---|---|
@@ -122,7 +128,7 @@ Interest is rounded to the nearest paise and does not compound. Annual simple an
 | `/change-password` | Required password change for provisioned accounts |
 | `/people` | Currently redirects to `/dashboard` |
 
-## 8. JSON API
+## 9. JSON API
 
 All endpoints except health and the cron endpoint require a valid authenticated session and role permission. Errors are returned as JSON by the shared HTTP error handler. Money inputs use rupees in form/API fields such as `amount`; persisted fields ending in `Paise` are integer paise.
 
@@ -144,7 +150,7 @@ All endpoints except health and the cron endpoint require a valid authenticated 
 
 This list reflects the implemented route handlers; it is not a guarantee of a stable public API. The UI also uses server actions for edits/deletes and other mutations.
 
-## 9. Excel import contract
+## 10. Excel import contract
 
 The import API accepts a multipart form field named `file`. It requires three sheets:
 
@@ -154,11 +160,11 @@ The import API accepts a multipart form field named `file`. It requires three sh
 
 Header aliases and numbered/prefixed sheet names are supported by `src/lib/excel-import.ts`. Amounts accept up to two decimals. Dates support Excel dates, parseable date strings, and day-first `DD-MM-YYYY`. The import runs in a database transaction. Event identity is `(villageId, name, year)`; a match is updated, otherwise an Active event is created. Donation/expense rows are appended, not replaced. Duplicate donation transaction references and summary rows are skipped.
 
-## 10. Reminder processing
+## 11. Reminder processing
 
 Creating a distribution creates five unique reminder rows: 30 days before, 15 days before, 7 days before, due day, and one day after the due date. The Vercel schedule in `vercel.json` invokes `GET /api/cron/reminders` daily at 03:00 UTC. The endpoint requires `Authorization: Bearer <CRON_SECRET>`. Due unsent rows are logged and marked sent. This is bookkeeping only; no delivery provider is configured. If a due date changes, old reminder rows are deleted and the schedule is recreated.
 
-## 11. Build, test, and deployment
+## 12. Build, test, and deployment
 
 Common commands:
 
@@ -172,9 +178,9 @@ npm run lint
 npm run build
 ```
 
-The production build script generates Prisma Client, deploys migrations, and runs `next build`. Production uses PostgreSQL with `DATABASE_URL` and `DIRECT_URL`; local development uses SQLite through the repository's Prisma scripts/schema. Production setup, Google OAuth, environment variables, first seed, cron verification, migration recovery, and health check are documented in `README.md`.
+The production build validates required environment variables, generates Prisma Client, deploys migrations, and runs `next build`. Vercel preview deployments skip production migrations. Production uses PostgreSQL with `DATABASE_URL` and `DIRECT_URL`; local development uses SQLite through the repository's Prisma scripts/schema. CI validates lint, types, tests, and a local SQLite build on Node 24. Production setup, Google OAuth, environment variables, first seed, cron verification, migration recovery, and health check are documented in `README.md`.
 
-## 12. Operational and maintenance notes
+## 13. Operational and maintenance notes
 
 - Back up the production database using the database provider's supported backup/PITR process before migrations or bulk imports. Confirm restore procedures periodically.
 - Review the audit log and original receipts during financial reconciliation; a generated PDF is a report, not proof of payment.

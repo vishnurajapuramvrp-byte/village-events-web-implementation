@@ -6,17 +6,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/utils";
+import { LocalizedContent } from "@/components/providers";
 
 export default async function MyLoanPage() {
   const user = await requireUser();
   if (user.role !== "RECIPIENT") {
     return (
-      <div>
+      <LocalizedContent>
+        <div>
         <h1 className="text-3xl font-semibold">Recipient view</h1>
         <p className="mt-2 text-muted-foreground">
           This page is for borrower accounts. Committee users should open the event ledger instead.
         </p>
-      </div>
+        </div>
+      </LocalizedContent>
     );
   }
 
@@ -36,7 +39,8 @@ export default async function MyLoanPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <LocalizedContent>
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">My distribution</h1>
         <p className="text-sm text-muted-foreground">
@@ -89,6 +93,7 @@ export default async function MyLoanPage() {
           );
         })
       )}
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }

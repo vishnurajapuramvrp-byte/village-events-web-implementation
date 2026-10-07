@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLocale } from "@/components/providers";
+import { translate } from "@/lib/i18n";
 
 const demos = [
   { identifier: "admin@village.local", role: "Admin" },
@@ -23,6 +25,8 @@ export function SignInForm({
   demoLoginEnabled: boolean;
 }) {
   const router = useRouter();
+  const { locale } = useLocale();
+  const t = (text: string) => translate(text, locale);
   const [identifier, setIdentifier] = useState(demoLoginEnabled ? "admin@village.local" : "");
   const [password, setPassword] = useState(demoLoginEnabled ? "demo1234" : "");
   const [error, setError] = useState("");
@@ -39,7 +43,7 @@ export function SignInForm({
     });
     setPending(false);
     if (result?.error) {
-      setError("Check the email and password, then try again.");
+      setError(t("Check the email and password, then try again."));
       return;
     }
     for (const key of Object.keys(window.sessionStorage)) {
@@ -54,8 +58,8 @@ export function SignInForm({
       {googleEnabled ? (
         <div className="space-y-3">
           <div>
-            <p className="text-sm font-semibold text-foreground">Gmail login</p>
-            <p className="text-xs text-muted-foreground">For users with an approved Gmail account.</p>
+            <p className="text-sm font-semibold text-foreground">{t("Gmail login")}</p>
+            <p className="text-xs text-muted-foreground">{t("For users with an approved Gmail account.")}</p>
           </div>
           <Button
             className="w-full"
@@ -70,27 +74,27 @@ export function SignInForm({
               }
             }}
           >
-            Continue with Gmail
+            {t("Continue with Gmail")}
           </Button>
         </div>
       ) : null}
 
       <div className={googleEnabled ? "space-y-3 border-t border-border pt-5" : "space-y-3"}>
         <div>
-          <p className="text-sm font-semibold text-foreground">Administrator-provided login</p>
-          <p className="text-xs text-muted-foreground">Use the email or mobile number and temporary password given by your administrator.</p>
+          <p className="text-sm font-semibold text-foreground">{t("Administrator-provided login")}</p>
+          <p className="text-xs text-muted-foreground">{t("Use the email or mobile number and temporary password given by your administrator.")}</p>
         </div>
         <p className="text-sm leading-6 text-muted-foreground">
-          <strong className="font-semibold text-foreground">Login Guideline:</strong> On your first sign-in, you’ll be prompted to create a new password. Contact your administrator if you don’t have an account or face issues.
+          <strong className="font-semibold text-foreground">{t("Login Guideline:")}</strong> {t("On your first sign-in, you’ll be prompted to create a new password. Contact your administrator if you don’t have an account or face issues.")}
         </p>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="identifier">Email or mobile number</Label>
+            <Label htmlFor="identifier">{t("Email or mobile number")}</Label>
             <Input id="identifier" type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("Password")}</Label>
             <Input
               id="password"
               type="password"
@@ -101,16 +105,16 @@ export function SignInForm({
           </div>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? t("Signing in…") : t("Sign in")}
         </Button>
         </form>
       </div>
 
-      {!googleEnabled && !demoLoginEnabled ? <p className="text-sm text-muted-foreground">Use the login details provided by an administrator.</p> : null}
+      {!googleEnabled && !demoLoginEnabled ? <p className="text-sm text-muted-foreground">{t("Use the login details provided by an administrator.")}</p> : null}
 
       {demoLoginEnabled ? (
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Demo accounts</p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("Demo accounts")}</p>
           <div className="grid gap-2">
             {demos.map((item) => (
               <button
@@ -123,11 +127,11 @@ export function SignInForm({
                 className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3 py-2 text-left text-sm hover:bg-muted"
               >
                 <span>{item.identifier}</span>
-                <span className="text-xs text-muted-foreground">{item.role}</span>
+                <span className="text-xs text-muted-foreground">{t(item.role)}</span>
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">Password for every seeded account: demo1234</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("Password for every seeded account: demo1234")}</p>
         </div>
       ) : null}
     </div>

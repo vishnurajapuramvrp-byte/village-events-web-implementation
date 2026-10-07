@@ -6,6 +6,7 @@ import { roleLabel } from "@/lib/rbac";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SubmitButton } from "@/components/submit-button";
+import { LocalizedContent } from "@/components/providers";
 
 const roles = Object.values(Role);
 
@@ -17,14 +18,15 @@ export default async function UsersPage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <LocalizedContent>
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">Users & roles</h1>
         <p className="text-sm text-muted-foreground">
           Add committee or recipient logins with either an email address or mobile number. New users must replace
           the temporary password before they can use the app.
         </p>
-      </div>
+        </div>
       <Card>
         <CardHeader>
           <CardTitle>Add user</CardTitle>
@@ -97,6 +99,7 @@ export default async function UsersPage() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </LocalizedContent>
   );
 }
