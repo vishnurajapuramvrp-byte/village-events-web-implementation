@@ -4,6 +4,12 @@ Web ledger for village festival funds, donations, expenses, and repayable distri
 
 This is a working Phase 1 app: Google or demo login, roles, events, donations, expenses, distributions with interest and due dates, reminder scheduling, PDF reports, people directory, and an audit log.
 
+## Project documentation
+
+- [Functional specification](docs/functional-specification.md): capabilities, roles, workflows, and business rules.
+- [Technical documentation](docs/technical-documentation.md): architecture, data model, APIs, configuration, deployment, and operations.
+- [User manual](docs/user-manual.md): step-by-step instructions for committee members, administrators, and recipients.
+
 ## Run locally
 
 Copy `.env.example` to `.env`. Local development uses a fresh SQLite database (`file:./dev.db`) with Google login enabled and demo login disabled.
